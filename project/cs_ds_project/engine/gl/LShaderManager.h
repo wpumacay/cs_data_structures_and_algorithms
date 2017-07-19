@@ -45,13 +45,32 @@ namespace engine
 
 			static Program createProgram( const GLchar* pVertexShaderResPath,
 										  const GLchar* pFragmentShaderResPath );
+			Program( const vector<Shader> &pShaders );
 			~Program();
 			GLuint id;
+		};
 
-		private :
 
-			Program( const vector<Shader> &pShaders );
+		class ShaderManager
+		{
 
+			private :
+
+			std::vector<Program> m_programs;
+
+			ShaderManager();
+
+			public :
+
+			static ShaderManager* instance;
+			static void create();
+			~ShaderManager();
+
+			GLuint createProgram( const GLchar* pVertexShaderResPath,
+							   	  const GLchar* pFragmentShaderResPath );
+
+			GLuint addProgram( Program pProgram );
+			Program& getProgram( GLuint pId );
 		};
 
 
@@ -59,7 +78,7 @@ namespace engine
 
 }
 
-engine::gp::Shader( GLuint pType, const GLchar* pShaderCode )
+engine::gp::Shader::Shader( GLuint pType, const GLchar* pShaderCode )
 {
 	m_type = pType;
 	id = glCreateShader( m_type );
@@ -81,7 +100,7 @@ engine::gp::Shader( GLuint pType, const GLchar* pShaderCode )
 	}
 }
 
-engine::gp::~Shader()
+engine::gp::Shader::~Shader()
 {
 
 }
@@ -121,7 +140,7 @@ GLuint engine::gp::Shader::type()
 }
 
 
-engine::gp::Program( const vector<engine::gp::Shader> &pShaders )
+engine::gp::Program::Program( const vector<engine::gp::Shader> &pShaders )
 {
 	id = glCreateProgram();
 	for ( unsigned int i = 0; i < pShaders.size(); i++ )
@@ -139,4 +158,69 @@ engine::gp::Program( const vector<engine::gp::Shader> &pShaders )
 	GLint _success;
 	GLchar _infoLog[ERRORLOG_BUFF_LENGTH];
 
+}
+
+
+engine::gp::Program engine::gp::Program::createProgram( const GLchar* pVertexShaderResPath,
+										  				const GLchar* pFragmentShaderResPath )
+{
+	engine::gp::Program _res_program;
+
+	vector<engine::gp::Shader> _shaders;
+	_shaders.push_back( engine::gp::Shader::createFromFile( GL_VERTEX_SHADER, pVertexShaderResPath ) );
+	_shaders.push_back( engine::gp::Shader::createFromFile( GL_FRAGMENT_SHADER, pFragmentShaderResPath ) );
+
+	_res_program = engine::Program( _shaders );
+
+	return _res_program;
+}
+
+engine::gp::Program::~Program()
+{
+
+}
+
+engine::gp::ShaderManager::ShaderManager()
+{
+
+}
+
+engine::gp::ShaderManager::~ShaderManager()
+{
+
+}
+
+GLuint engine::gp::ShaderManager::addProgram( engine::gp::Program pProgram )
+{
+	m_programs.push_back( pProgram );
+	return m_programs.size() - 1;
+}
+
+engine::gp::Program* engine::gp::ShaderManager::getProgram( GLuint pId )
+{
+	if ( pId >= 0 && pId < m_programs.size() )
+	{
+		return m_programs[pId];
+	}
+	return NULL;
+}
+
+void engine::gp::ShaderManager::create()
+{
+	if ( engine::gp::ShaderManager::instance != NULL )
+	{
+		delete engine::gp::ShaderManager::instance;
+	}
+
+	engine::gp::ShaderManager::instance = new engine::gp::ShaderManager;
+}
+
+
+GLuint engine::gp::ShaderManager::createProgram( const GLchar* pVertexShaderResPath,
+							   	  				 const GLchar* pFragmentShaderResPath )
+{
+	engine::gp::Program _program = engine::gp::Program::createProgram( pVertexShaderResPath,
+															  pFragmentShaderResPath );
+	GLuint _resId = addProgram( _program );
+	return _resId;
 }

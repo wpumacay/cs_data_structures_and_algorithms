@@ -21,7 +21,8 @@ namespace engine
 			double _yi = pConf( 2 * q + 2, 0 );
 			double _dist = sqrt( _xi * _xi + _yi * _yi );
 			double _r = pRes( q, 0 );
-            _res += std::max( _dist + _r - _rContainer, 0.0 );
+            double _cost_q = std::max( _dist + _r - _rContainer, 0.0 );
+            _res += _cost_q * _cost_q;
 		}
 
 		// Calculate the overlap between circles
@@ -35,12 +36,13 @@ namespace engine
 			{
 				double _xj = pConf( 2 * p + 1, 0 );
 				double _yj = pConf( 2 * p + 2, 0 );
-				double _rj = pConf( p, 0 );
+                double _rj = pRes( p, 0 );
 
 				double _dist = sqrt( ( _xi - _xj ) * ( _xi - _xj ) + 
 									 ( _yi - _yj ) * ( _yi - _yj ) );
+                double _cost_pq = std::max( _ri + _rj - _dist, 0.0 );
 
-                _res += std::max( _ri + _rj - _dist, 0.0 );
+                _res += _cost_pq * _cost_pq;// + _dist * _dist;
 			}
 		}
 

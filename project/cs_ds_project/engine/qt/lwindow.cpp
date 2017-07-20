@@ -72,7 +72,13 @@ namespace engine
 
         void LWindow::onTest_Potential_U()
         {
-            itsvnd::optimizers::evalGradientDescent( m_circleRenderer->circleConfiguration );
+            //double _pot = itsvnd::optimizers::evalGradientDescent( m_circleRenderer->circleConfiguration );
+            //if ( _pot <= 0 )
+            //if ( true )
+            //{
+            //    m_circleRenderer->circleConfiguration->getContainer().r -= 0.1;
+            //}
+            itsvnd::optimizers::BS_GradientDescent( m_circleRenderer->circleConfiguration );
         }
 
         void LWindow::onTest_InstanceSelected( int pIndxSelected )

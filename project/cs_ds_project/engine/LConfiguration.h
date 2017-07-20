@@ -49,6 +49,36 @@ namespace engine
 			return m_feasibility;
 		}
 
+        void updateFeasibility( double val )
+        {
+            m_feasibility = val;
+            if ( m_feasibility <= 0.0 )
+            {
+                m_isFeasible = true;
+            }
+            else
+            {
+                m_isFeasible = false;
+            }
+        }
+
+        void computeFeasibility()
+        {
+            arma::mat _x = arma::zeros<arma::mat>( 2 * this->size + 1, 1 );
+            // A vector for the extra resources needed ( radius )
+            arma::mat _r = arma::zeros<arma::mat>( this->size, 1 );
+
+            _x( 0, 0 ) = ( this->getContainer() ).r;
+            for ( int q = 0; q < this->size; q++ )
+            {
+                _x( 2 * q + 1, 0 ) = ( this->getCircleByIndx( q ) ).pos.x;
+                _x( 2 * q + 2, 0 ) = ( this->getCircleByIndx( q ) ).pos.y;
+                _r( q, 0 ) = ( this->getCircleByIndx( q ) ).r;
+            }
+
+            updateFeasibility( potentialFunction( _x, _r ) );
+        }
+
 		bool isFeasible()
 		{
 			return m_isFeasible;

@@ -144,6 +144,28 @@ namespace engine
                 return;
             }
 
+            // Do a check of hits between circles to set an appropiate color
+            for ( int i = 0; i < circleConfiguration->size; i++ )
+            {
+                LCircle& _circle = circleConfiguration->getCircleByIndx( i );
+
+                if ( _circle.hitTest( circleConfiguration->getContainer() ) )
+                {
+                    _circle.hit = true;
+                    circleConfiguration->getContainer().hit = true;
+                }
+
+                for ( int j = i + 1; j < circleConfiguration->size; j++ )
+                {
+                    LCircle& _other = circleConfiguration->getCircleByIndx( j );
+                    if ( _circle.hitTest( _other ) )
+                    {
+                        _circle.hit = true;
+                        _other.hit = true;
+                    }
+                }
+            }
+
             #ifdef SHOW_INITIALIZATION
             if ( m_initializationIterations < INITIALIZATION_ITERS )
             {
@@ -174,16 +196,23 @@ namespace engine
             }
             #endif
 
-            _painter.setPen( QPen( QColor( 0, 0, 255, 255 ), 3 ) );
+            QPen _color_no_hit( QColor( 0, 0, 255, 255 ), 2 );
+            QPen _color_hit( QColor( 255, 0, 0, 255 ), 2 );
+            QPen _color_txt( QColor( 0, 0, 0, 255 ), 2 );
+            _painter.setPen( _color_no_hit );
 
             for ( int q = 0; q < circleConfiguration->size; q++ )
             {
                 LCircle& _circle = circleConfiguration->getCircleByIndx( q );
                 QPointF _center( _circle.pos.x * DRAW_SCALE, _circle.pos.y * DRAW_SCALE );
+                _painter.setPen( _circle.hit ? _color_hit : _color_no_hit );
                 _painter.drawEllipse( _center, _circle.r * DRAW_SCALE, _circle.r * DRAW_SCALE );
+                _painter.setPen( _color_txt );
+                _painter.drawText( _center, QString::number( q + 1 ) );
             }
-            LCircle _container = circleConfiguration->getContainer();
+            LCircle& _container = circleConfiguration->getContainer();
             QPointF _center( _container.pos.x * DRAW_SCALE, _container.pos.y * DRAW_SCALE );
+            _painter.setPen( _container.hit ? _color_hit : _color_no_hit );
             _painter.drawEllipse( _center, _container.r * DRAW_SCALE, _container.r * DRAW_SCALE );
         }
     }

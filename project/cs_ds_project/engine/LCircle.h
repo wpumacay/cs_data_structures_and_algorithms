@@ -18,6 +18,7 @@ namespace engine
 
 		double r;
 		LPoint pos;
+		bool hit;
 
         LCircle()
         {
@@ -26,6 +27,7 @@ namespace engine
             this->pos.y = 0;
 
             isDynamic = true;
+            hit = false;
         }
 
 		LCircle( double x, double y, double r )
@@ -38,6 +40,7 @@ namespace engine
 			this->inInitialization = false;
 			this->vx = 0;
 			this->vy = 0;
+			hit = false;
 		}
 
 		LCircle( const LCircle& other )
@@ -47,6 +50,7 @@ namespace engine
 			this->pos.y = other.pos.y;
 
             this->isDynamic = other.isDynamic;
+            hit = other.hit;
 		}
 
 		// For the physics based initialization ********************************

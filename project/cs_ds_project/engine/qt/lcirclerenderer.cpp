@@ -93,6 +93,7 @@ namespace engine
 
             m_initializationIterations = 0;
 
+        #ifdef USE_PHYSICS_BASED_INITIALIZATION
             #ifndef SHOW_INITIALIZATION
             for( int q = 0; q < INITIALIZATION_ITERS; q++ )
             {
@@ -122,8 +123,8 @@ namespace engine
                 m_initializationIterations++;
             }
 
-
             #endif
+        #endif
 
         }
 
@@ -165,7 +166,7 @@ namespace engine
                     }
                 }
             }
-
+        #ifdef USE_PHYSICS_BASED_INITIALIZATION
             #ifdef SHOW_INITIALIZATION
             if ( m_initializationIterations < INITIALIZATION_ITERS )
             {
@@ -195,6 +196,7 @@ namespace engine
                 }
             }
             #endif
+        #endif
 
             QPen _color_no_hit( QColor( 0, 0, 255, 255 ), 2 );
             QPen _color_hit( QColor( 255, 0, 0, 255 ), 2 );
@@ -208,7 +210,7 @@ namespace engine
                 _painter.setPen( _circle.hit ? _color_hit : _color_no_hit );
                 _painter.drawEllipse( _center, _circle.r * DRAW_SCALE, _circle.r * DRAW_SCALE );
                 _painter.setPen( _color_txt );
-                _painter.drawText( _center, QString::number( q + 1 ) );
+                _painter.drawText( _center, QString::number( _circle.id ) );
             }
             LCircle& _container = circleConfiguration->getContainer();
             QPointF _center( _container.pos.x * DRAW_SCALE, _container.pos.y * DRAW_SCALE );

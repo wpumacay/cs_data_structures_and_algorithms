@@ -8,6 +8,7 @@
 
 #define RANDOM() ( rand() / ( float )RAND_MAX )
 
+
 namespace engine
 {
 
@@ -19,6 +20,7 @@ namespace engine
 		double r;
 		LPoint pos;
 		bool hit;
+		int id;
 
         LCircle()
         {
@@ -51,6 +53,25 @@ namespace engine
 
             this->isDynamic = other.isDynamic;
             hit = other.hit;
+            this->id = other.id;
+		}
+
+		LCircle& operator=( const LCircle& other )
+		{
+			if ( &other == this )
+			{
+				return *this;
+			}
+
+			this->r = other.r;
+			this->pos.x = other.pos.x;
+			this->pos.y = other.pos.y;
+
+			this->isDynamic = other.isDynamic;
+			this->hit = other.hit;
+			this->id = other.id;
+
+			return *this;
 		}
 
 		// For the physics based initialization ********************************

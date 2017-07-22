@@ -32,6 +32,7 @@ namespace engine
             QPushButton* _btn_test_pause = new QPushButton( "Pause" );
             QPushButton* _btn_test_reset = new QPushButton( "Reset" );
             QPushButton* _btn_test_general = new QPushButton( "Just a test" );
+            QPushButton* _btn_test_swap_neighborhood = new QPushButton( "Swap Neighborhood" );
 
             connect( _btn_test_bfgs, SIGNAL( clicked() ), this, SLOT( onTest_BFGS() ) );
             connect( _btn_test_potential, SIGNAL( clicked() ), this, SLOT( onTest_Potential_U() ) );
@@ -40,6 +41,7 @@ namespace engine
             connect( _btn_test_pause, SIGNAL( clicked() ), this, SLOT( onTest_Pause() ) );
             connect( _btn_test_reset, SIGNAL( clicked() ), this, SLOT( onTest_Reset() ) );
             connect( _btn_test_general, SIGNAL( clicked() ), this, SLOT( onTest_General() ) );
+            connect( _btn_test_swap_neighborhood, SIGNAL( clicked() ), this, SLOT( onTest_SwapNeighborhood() ) );
 
             _layout_test_options->addWidget( _btn_test_bfgs );
             _layout_test_options->addWidget( _btn_test_potential );
@@ -48,6 +50,7 @@ namespace engine
             _layout_test_options->addWidget( _btn_test_pause );
             _layout_test_options->addWidget( _btn_test_reset );
             _layout_test_options->addWidget( _btn_test_general );
+            _layout_test_options->addWidget( _btn_test_swap_neighborhood );
 
             QTimer* _timer = new QTimer( this );
 
@@ -116,6 +119,11 @@ namespace engine
                                                     QString::number( _x( 0, 0 ) ) + 
                                                     tr( " " ) + 
                                                     QString::number( _x( 1, 0 ) ) );
+        }
+
+        void LWindow::onTest_SwapNeighborhood()
+        {
+            
         }
     }
 

@@ -93,7 +93,9 @@ namespace engine
 		void addCircle( const LCircle& c )
 		{
 			m_circles.push_back( LCircle( c ) );
+			( m_circles.back() ).id = m_circles.size();
 			m_bfCircles.push_back( LCircle( c ) );
+			( m_bfCircles.back() ).id = m_bfCircles.size();
 		}
 
 		LCircle& getCircleByIndx( int indx )
@@ -120,6 +122,13 @@ namespace engine
 		{
 			m_circles = circles;
 			this->size = circles.size();
+		}
+
+		void swapCircles( int pIndx1, int pIndx2 )
+		{
+			LCircle _tmpCircle = m_circles[pIndx1];
+			m_circles[pIndx1] = m_circles[pIndx2];
+			m_circles[pIndx2] = _tmpCircle;
 		}
 
 

@@ -7,6 +7,7 @@
 #define RANDOM() ( rand() / ( float )RAND_MAX )
 #define DRAW_SCALE 10
 // #define SHOW_INITIALIZATION
+// #define USE_PHYSICS_BASED_INITIALIZATION
 #define INITIALIZATION_ITERS 5000
 
 namespace engine

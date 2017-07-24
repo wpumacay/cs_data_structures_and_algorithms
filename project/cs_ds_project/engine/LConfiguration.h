@@ -11,6 +11,8 @@
 
 using namespace std; 
 
+#define RANGE_U_FEASIBLE 0.001
+
 namespace engine
 {
 
@@ -124,13 +126,122 @@ namespace engine
 			this->size = circles.size();
 		}
 
+        LConfiguration( const LConfiguration& other )
+        {
+            this->m_feasibility = other.m_feasibility;
+            this->m_isFeasible  = other.m_isFeasible;
+            this->m_circles     = other.m_circles;
+            this->m_bfCircles   = other.m_bfCircles;
+            this->m_container   = other.m_container;
+            this->size          = other.size;
+        }
+
+        LConfiguration& operator=( const LConfiguration& other )
+        {
+            this->m_feasibility = other.m_feasibility;
+            this->m_isFeasible  = other.m_isFeasible;
+            this->m_circles     = other.m_circles;
+            this->m_bfCircles   = other.m_bfCircles;
+            this->m_container   = other.m_container;
+            this->size          = other.size;
+
+            return *this;
+        }
+
 		void swapCircles( int pIndx1, int pIndx2 )
 		{
-			LCircle _tmpCircle = m_circles[pIndx1];
-			m_circles[pIndx1] = m_circles[pIndx2];
-			m_circles[pIndx2] = _tmpCircle;
+            LPoint _tmpPos = m_circles[pIndx1].pos;
+            m_circles[pIndx1].pos = m_circles[pIndx2].pos;
+            m_circles[pIndx2].pos = _tmpPos;
 		}
 
+
+        LConfiguration* clone()
+        {
+            LConfiguration* _clone = new LConfiguration( *this );
+
+            return _clone;
+        }
+
+        bool isBetter( LConfiguration* other )
+        {
+            if ( other->isFeasible() && this->isFeasible() )
+            {
+                return this->m_container.r < other->m_container.r;
+            }
+            else if ( ( other->isFeasible() && this->feasibility() < RANGE_U_FEASIBLE ) ||
+                      ( this->isFeasible() && other->feasibility() < RANGE_U_FEASIBLE ) )
+            {
+                return this->m_container.r < other->m_container.r;
+            }
+            else if ( other->isFeasible() )
+            {
+                return false;
+            }
+            else if ( this->isFeasible() )
+            {
+                return true;
+            }
+            
+            return this->feasibility() < other->feasibility();
+        }
+
+        static LConfiguration* initializeFromInstance( circleInstance::_circleInstance pCircleInstance, int pSize = 7 )
+        {
+            LConfiguration* _conf = new LConfiguration();
+            _conf->size = pSize;
+
+            double _containerRadius = 0.0;
+
+            for ( int q = 0; q < pSize; q++ )
+            {
+                LCircle _circle( 0, 0, 1 );
+
+                switch ( pCircleInstance )
+                {
+
+                    case circleInstance::INST_r_i :
+                        _circle.r = ( q + 1 );
+                    break;
+
+                    case circleInstance::INST_r_sqrt_i :
+                        _circle.r = sqrt( q + 1 );
+                    break;
+
+                    case circleInstance::INST_r_neg_sqrt_i :
+                        _circle.r = pSize / sqrt( q + 1 );
+                    break;
+                }
+
+                _containerRadius +=_circle.r * _circle.r;
+                _circle.id = ( q + 1 );
+                _conf->addCircle( _circle );
+            }
+
+            _containerRadius = 2 * sqrt( _containerRadius );
+            LCircle _cContainer( 0, 0, _containerRadius );
+            _cContainer.inInitialization = true;
+            _cContainer.isDynamic = false;
+            _cContainer.vx = 0;
+            _cContainer.vy = 0;
+            _conf->setContainer( _cContainer );
+
+            for ( int q = 0; q < pSize; q++ )
+            {
+                LCircle& _circle = _conf->getCircleByIndx( q );
+
+                _circle.inInitialization = true;
+                _circle.isDynamic = true;
+                _circle.vx = RANDOM() * 0.1;
+                _circle.vy = RANDOM() * 0.1;
+                double _r = RANDOM() * _containerRadius - _circle.r;
+                double _t = RANDOM() * 2 * M_PI;
+                _circle.pos.x = _r * cos( _t );
+                _circle.pos.y = _r * sin( _t );
+            }
+
+            return _conf;
+        }
 
 	};
 

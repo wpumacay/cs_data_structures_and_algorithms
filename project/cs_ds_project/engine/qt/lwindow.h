@@ -3,6 +3,8 @@
 
 #include <QWidget>
 #include <QLabel>
+#include <QComboBox>
+#include <QSpinBox>
 #include "lcirclerenderer.h"
 
 namespace engine
@@ -19,14 +21,25 @@ namespace engine
 
         private :
 
+            QSpinBox* m_sbox_instance_size;
+            QComboBox* m_cbox_instance_type;
+            QComboBox* m_solver_optimizer_type;
+            QComboBox* m_solver_intensifier_type;
+
+            QSpinBox* m_sbox_test_swap_1;
+            QSpinBox* m_sbox_test_swap_2;
+            QLabel* m_lbl_result;
+
             LCircleRenderer* m_circleRenderer;
 
         signals:
 
         public slots:
-            void onTest_BFGS();
+            void onInitializeSolver();
+            void onInitializeInstance();
+
+            void onTest_Solver();
             void onTest_Potential_U();
-            void onTest_InstanceSelected( int pIndxSelected );
             void onTest_Start();
             void onTest_Pause();
             void onTest_Reset();

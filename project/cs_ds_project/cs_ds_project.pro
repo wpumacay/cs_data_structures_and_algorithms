@@ -8,7 +8,9 @@ SOURCES += \
     main.cpp \
     engine/qt/lcirclerenderer.cpp \
     engine/qt/lwindow.cpp \
-    engine/LConfiguration.cpp
+    engine/LConfiguration.cpp \
+    engine/LSolver.cpp \
+    itsvnd/neighborhood/Neighborhoods.cpp
 
 HEADERS += \
     engine/qt/lcirclerenderer.h \
@@ -16,6 +18,11 @@ HEADERS += \
     engine/LCommon.h \
     engine/LCircle.h \
     engine/LConfiguration.h \
-    itsvnd/optimization/BFGS_optimizer.h
+    engine/LSolver.h \
+    itsvnd/optimization/LBaseOptimizer.h \
+    itsvnd/optimization/LGradientDescentOptimizer.h \
+    itsvnd/neighborhood/Neighborhoods.h \
+    itsvnd/intensification/LBaseIntensifier.h \
+    itsvnd/intensification/LVNDintensifier.h
 
 LIBS += -llapack -lblas -larmadillo

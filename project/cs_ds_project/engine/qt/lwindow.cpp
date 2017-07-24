@@ -3,13 +3,12 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QPushButton>
-#include <QComboBox>
 #include <QTimer>
 #include <QMessageBox>
 
 #include <armadillo>
 
-#include "../../itsvnd/optimization/BFGS_optimizer.h"
+#include "../LSolver.h"
 
 namespace engine
 {
@@ -22,35 +21,79 @@ namespace engine
             QHBoxLayout* _layout_main = new QHBoxLayout;
             QVBoxLayout* _layout_test_options = new QVBoxLayout;
 
-            QPushButton* _btn_test_bfgs = new QPushButton( "Test BFGS" );
+            // Solver stuff ******************************************************
+            QLabel* _lb_Solver = new QLabel( "Solver" );
+            _layout_test_options->addWidget( _lb_Solver );
+
+            m_solver_optimizer_type = new QComboBox();
+            m_solver_optimizer_type->addItem( "BS_Gradient_Descent" );
+            m_solver_optimizer_type->addItem( "BS_LBFGS" );
+            _layout_test_options->addWidget( m_solver_optimizer_type );
+
+            m_solver_intensifier_type = new QComboBox();
+            m_solver_intensifier_type->addItem( "Local_Search" );
+            m_solver_intensifier_type->addItem( "VND" );
+            m_solver_intensifier_type->addItem( "TS_VND" );
+            _layout_test_options->addWidget( m_solver_intensifier_type );
+
+            QPushButton* _btn_initialize_solver = new QPushButton( "InitializeSolver" );
+            connect( _btn_initialize_solver, SIGNAL( clicked() ), this, SLOT( onInitializeSolver() ) );
+            _layout_test_options->addWidget( _btn_initialize_solver );
+            // *******************************************************************
+
+            // Instance stuff ****************************************************
+            QLabel* _lb_Instance = new QLabel( "Instance" );
+            _layout_test_options->addWidget( _lb_Instance );
+
+            m_cbox_instance_type = new QComboBox();
+            m_cbox_instance_type->addItem( "r = i" );
+            m_cbox_instance_type->addItem( "r = i^0.5" );
+            m_cbox_instance_type->addItem( "r = i^-0.5" );
+            _layout_test_options->addWidget( m_cbox_instance_type );
+
+            m_sbox_instance_size = new QSpinBox();
+            m_sbox_instance_size->setRange( 5, 50 );
+            _layout_test_options->addWidget( m_sbox_instance_size );
+
+            QPushButton* _btn_initialize_instance = new QPushButton( "InitializeInstance" );
+            connect( _btn_initialize_instance, SIGNAL( clicked() ), this, SLOT( onInitializeInstance() ) );
+            _layout_test_options->addWidget( _btn_initialize_instance );
+            // *******************************************************************
+
+            QPushButton* _btn_test_solver_step = new QPushButton( "Test Solver step" );
+
             QPushButton* _btn_test_potential = new QPushButton( "Test Potential U" );
-            QComboBox* _cb_test_instances = new QComboBox();
-            _cb_test_instances->addItem( "r = i" );
-            _cb_test_instances->addItem( "r = i^0.5" );
-            _cb_test_instances->addItem( "r = i^-0.5" );
             QPushButton* _btn_test_start = new QPushButton( "Start" );
             QPushButton* _btn_test_pause = new QPushButton( "Pause" );
             QPushButton* _btn_test_reset = new QPushButton( "Reset" );
             QPushButton* _btn_test_general = new QPushButton( "Just a test" );
             QPushButton* _btn_test_swap_neighborhood = new QPushButton( "Swap Neighborhood" );
 
-            connect( _btn_test_bfgs, SIGNAL( clicked() ), this, SLOT( onTest_BFGS() ) );
+            connect( _btn_test_solver_step, SIGNAL( clicked() ), this, SLOT( onTest_Solver() ) );
             connect( _btn_test_potential, SIGNAL( clicked() ), this, SLOT( onTest_Potential_U() ) );
-            connect( _cb_test_instances, SIGNAL( currentIndexChanged(int) ), this, SLOT( onTest_InstanceSelected( int ) ) );
             connect( _btn_test_start, SIGNAL( clicked() ), this, SLOT( onTest_Start() ) );
             connect( _btn_test_pause, SIGNAL( clicked() ), this, SLOT( onTest_Pause() ) );
             connect( _btn_test_reset, SIGNAL( clicked() ), this, SLOT( onTest_Reset() ) );
             connect( _btn_test_general, SIGNAL( clicked() ), this, SLOT( onTest_General() ) );
             connect( _btn_test_swap_neighborhood, SIGNAL( clicked() ), this, SLOT( onTest_SwapNeighborhood() ) );
 
-            _layout_test_options->addWidget( _btn_test_bfgs );
+            _layout_test_options->addWidget( _btn_test_solver_step );
             _layout_test_options->addWidget( _btn_test_potential );
-            _layout_test_options->addWidget( _cb_test_instances );
             _layout_test_options->addWidget( _btn_test_start );
             _layout_test_options->addWidget( _btn_test_pause );
             _layout_test_options->addWidget( _btn_test_reset );
             _layout_test_options->addWidget( _btn_test_general );
             _layout_test_options->addWidget( _btn_test_swap_neighborhood );
+
+            m_sbox_test_swap_1 = new QSpinBox();
+            m_sbox_test_swap_1->setRange( 1, 20 );
+            _layout_test_options->addWidget( m_sbox_test_swap_1 );
+            m_sbox_test_swap_2 = new QSpinBox();
+            m_sbox_test_swap_2->setRange( 1, 20 );
+            _layout_test_options->addWidget( m_sbox_test_swap_2 );
+
+            m_lbl_result = new QLabel( "res: 0.0" );
+            _layout_test_options->addWidget( m_lbl_result );
 
             QTimer* _timer = new QTimer( this );
 
@@ -68,62 +111,52 @@ namespace engine
             setWindowTitle( tr( "Circle Packing" ) );
         }
 
-        void LWindow::onTest_BFGS()
+        void LWindow::onInitializeSolver()
         {
+            LSolver::createSolver( ( options::optimizer::_optimizer ) m_solver_optimizer_type->currentIndex(),
+                                   ( options::intensifier::_intensifier ) m_solver_intensifier_type->currentIndex() );
+        }
 
+        void LWindow::onInitializeInstance()
+        {
+            LSolver::instance->init( ( circleInstance::_circleInstance ) m_cbox_instance_type->currentIndex(),
+                                     m_sbox_instance_size->value() );
+        }
+
+        void LWindow::onTest_Solver()
+        {
+            LSolver::instance->step();
+
+            m_lbl_result->setText( tr( "res: " ) + QString::number( LSolver::instance->configuration()->getContainer().r ) );
         }
 
         void LWindow::onTest_Potential_U()
         {
-            //double _pot = itsvnd::optimizers::evalGradientDescent( m_circleRenderer->circleConfiguration );
-            //if ( _pot <= 0 )
-            //if ( true )
-            //{
-            //    m_circleRenderer->circleConfiguration->getContainer().r -= 0.1;
-            //}
-            itsvnd::optimizers::BS_GradientDescent( m_circleRenderer->circleConfiguration );
-        }
-
-        void LWindow::onTest_InstanceSelected( int pIndxSelected )
-        {
-            m_circleRenderer->initializeFromInstance( ( engine::circleInstance::_circleInstance ) pIndxSelected, 7 );
         }
 
         void LWindow::onTest_Start()
         {
-
         }
 
         void LWindow::onTest_Pause()
         {
-
         }
 
         void LWindow::onTest_Reset()
         {
-
         }
 
         void LWindow::onTest_General()
         {
-            arma::mat _x = arma::zeros<arma::mat>( 2, 1 );
-            arma::mat _res = arma::zeros<arma::mat>( 2, 1 );
-
-            _x( 0, 0 ) = 10;
-            _x( 1, 0 ) = 10;
-
-            itsvnd::optimizers::testGradientDescent( _x, _res );
-
-            int _ret = QMessageBox::information( this, tr( "Gradient calculation" ),
-                                                 tr( "Result: " ) + 
-                                                    QString::number( _x( 0, 0 ) ) + 
-                                                    tr( " " ) + 
-                                                    QString::number( _x( 1, 0 ) ) );
+            LSolver::instance->test_optimization();
+            m_lbl_result->setText( tr( "res: " ) + QString::number( LSolver::instance->configuration()->getContainer().r ) );
         }
 
         void LWindow::onTest_SwapNeighborhood()
         {
-            
+            LSolver::instance->test_swap( m_sbox_test_swap_1->value() - 1,
+                                          m_sbox_test_swap_2->value() - 1 );
+            m_lbl_result->setText( tr( "res: " ) + QString::number( LSolver::instance->configuration()->getContainer().r ) );
         }
     }
 

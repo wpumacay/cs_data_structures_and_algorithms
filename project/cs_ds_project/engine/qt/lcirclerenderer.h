@@ -5,7 +5,7 @@
 #include "../LConfiguration.h"
 
 #define RANDOM() ( rand() / ( float )RAND_MAX )
-#define DRAW_SCALE 10
+#define DRAW_SCALE 2.5
 // #define SHOW_INITIALIZATION
 // #define USE_PHYSICS_BASED_INITIALIZATION
 #define INITIALIZATION_ITERS 5000
@@ -24,13 +24,10 @@ namespace engine
 
         public :
 
-            LConfiguration* circleConfiguration;
-
             LCircleRenderer( QWidget *parent = nullptr );
 
             QSize minimumSizeHint() const override;
             QSize sizeHint() const override;
-            void initializeFromInstance( circleInstance::_circleInstance pCircleInstance, int size );
 
         public slots :
 

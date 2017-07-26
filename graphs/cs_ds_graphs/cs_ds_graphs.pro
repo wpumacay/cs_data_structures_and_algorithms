@@ -26,14 +26,16 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-        gldrawingarea.cpp
+        gldrawingarea.cpp \
+        lib/delaunay/delaunay.c
 
 HEADERS += \
         mainwindow.h \
         gldrawingarea.h \
         graph/LEdge.h \
         graph/LNode.h \
-        graph/LGraph.h
+        graph/LGraph.h \
+        lib/delaunay/delaunay.h
 
 FORMS += \
         mainwindow.ui

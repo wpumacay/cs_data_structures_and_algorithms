@@ -3,10 +3,14 @@
 
 #include <QOpenGLWidget>
 #include "graph/LGraph.h"
+#include "graph/LNode.h"
+#include "graph/LEdge.h"
 
 #include <QBrush>
 #include <QPen>
 #include <vector>
+
+
 
 namespace qt
 {
@@ -39,6 +43,11 @@ namespace qt
         QPen m_obstaclePen;
 
         std::vector<QRectF> m_obstacles;
+
+        DS::LNode<DS::LGraph<int, double>>* m_pick_node_from;
+        DS::LNode<DS::LGraph<int, double>>* m_pick_node_to;
+
+        void calculatePath();
 
         public :
 

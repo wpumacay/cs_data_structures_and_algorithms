@@ -47,6 +47,17 @@ namespace DS
 								  LNode<LGraph<N,E> >* to,
 								  E edge_data )
 	{
+        // Check if already has this edge
+        for ( int q = 0; q < from->edges.size(); q++ )
+        {
+            LEdge<LGraph<N,E> >* _edge = from->edges[q];
+            if ( _edge->nodes[1] == to )
+            {
+                // Already there
+                return;
+            }
+        }
+
 		LEdge<LGraph<N,E> >* _edge_from = new LEdge<LGraph<N,E> >( edge_data );
 
 		_edge_from->nodes[0] = from;

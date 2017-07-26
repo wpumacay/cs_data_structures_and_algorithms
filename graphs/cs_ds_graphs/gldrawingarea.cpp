@@ -1,5 +1,4 @@
 
-#pragma once
 
 #include "gldrawingarea.h"
 
@@ -10,16 +9,19 @@
 #include <vector>
 #include <cstdlib>
 
-#include "graph/LNode.h"
-#include "graph/LEdge.h"
-#include "graph/LGraph.h"
+#include "lib/delaunay/delaunay.h"
 
-#define GRAPH_NODES 4
+#define GRAPH_NODES 100
 
 #define DELTA 10
 
 #define GRAPH_AREA_X 100
 #define GRAPH_AREA_Y 100
+
+#define OBS_WIDTH 200
+#define OBS_HEIGHT 200
+
+#define RANGE_PICK 5.0
 
 #define RANDOM() ( rand() / ( float )RAND_MAX )
 
@@ -32,6 +34,8 @@ namespace qt
 
         m_state = ST_NORMAL;
         m_rectTooltip = nullptr;
+        m_pick_node_from = nullptr;
+        m_pick_node_to = nullptr;
 
         m_bgBrush = QBrush( QColor( 0, 0, 0 ) );
         m_bgPen = QPen( Qt::black );
@@ -59,6 +63,17 @@ namespace qt
         {
             DS::LNode<DS::LGraph<int, double> >* _node = this->graph.nodes[q];
 
+            for ( int s = 0; s < m_obstacles.size(); s++ )
+            {
+                QRectF _obs = m_obstacles[s];
+                if ( _obs.contains( _node->x, _node->y ) )
+                {
+                    cout << "removed node" << endl;
+                    this->graph.removeNode( _node );
+                    break;
+                }
+            }
+
             for ( int p = 0; p < _node->edges.size(); p++ )
             {
                 DS::LEdge<DS::LGraph<int, double> >* _edge = _node->edges[p];
@@ -79,14 +94,14 @@ namespace qt
                     QRectF _obs = m_obstacles[o];
                     for ( int s = 0; s < N; s++ )
                     {
-                        if ( _obs.contains( x1 + s * DELTA * dx,
-                                            y1 + s * DELTA * dy ) )
+                        if ( _obs.contains( x1 + s * DELTA * dx / dist,
+                                            y1 + s * DELTA * dy / dist ) )
                         {
+                            cout << "removed edge" << endl;
                             graph.removeEdge( _edge );
                             break;
                         }
                     }
-
                 }
             }
         }
@@ -113,6 +128,12 @@ namespace qt
 
             DS::LNode<DS::LGraph<int, double> >* _node = this->graph.nodes[q];
             QPointF _pos( _node->x, _node->y );
+            if ( _node == m_pick_node_from ||
+                 _node == m_pick_node_to )
+            {
+                _painter.setBrush( m_obstacleBrush );
+                _painter.setPen( m_obstaclePen );
+            }
             _painter.drawEllipse( _pos, 5, 5 );
 
             _painter.setBrush( m_edgeBrush );
@@ -163,15 +184,39 @@ namespace qt
 
     void GLdrawingArea::initGraphConnections()
     {
-        for ( int p = 0; p < this->graph.nodes.size(); p++  )
+        int _numPoints = this->graph.nodes.size();
+        del_point2d_t* _points = new del_point2d_t[_numPoints];
+        for ( int q = 0; q < _numPoints; q++ )
         {
-            for ( int q = p + 1; q < this->graph.nodes.size(); q++ )
-            {
-                this->graph.insertEdge( this->graph.nodes[p],
-                                        this->graph.nodes[q],
-                                        1.0 );
-            }
+            DS::LNode<DS::LGraph<int, double> >* _node = this->graph.nodes[q];
+            _points[q].x = _node->x;
+            _points[q].y = _node->y;
         }
+
+        delaunay2d_t* _res = delaunay2d_from( _points, _numPoints );
+        tri_delaunay2d_t* _tres	= tri_delaunay2d_from( _res );
+
+        for ( int q = 0; q < _tres->num_triangles; q++ )
+        {
+            int _indxs[3] = {0,0,0};
+            for ( int p = 0; p < 3; p++ )
+            {
+                _indxs[p] = _tres->tris[q * 3 + p];
+            }
+            this->graph.insertEdge( this->graph.nodes[_indxs[0]],
+                                    this->graph.nodes[_indxs[1]],
+                                    1.0 );
+            this->graph.insertEdge( this->graph.nodes[_indxs[1]],
+                                    this->graph.nodes[_indxs[2]],
+                                    1.0 );
+            this->graph.insertEdge( this->graph.nodes[_indxs[2]],
+                                    this->graph.nodes[_indxs[0]],
+                                    1.0 );
+        }
+
+        delete _res;
+        delete _tres;
+        delete[] _points;
     }
 
     void GLdrawingArea::mouseMoveEvent( QMouseEvent* ev )
@@ -181,28 +226,69 @@ namespace qt
             m_rectTooltip->setLeft( ev->x() );
             m_rectTooltip->setTop( ev->y() );
 
-            m_rectTooltip->setWidth( 50 );
-            m_rectTooltip->setHeight( 100 );
+            m_rectTooltip->setWidth( OBS_WIDTH );
+            m_rectTooltip->setHeight( OBS_HEIGHT );
         }
+    }
+
+    void GLdrawingArea::calculatePath()
+    {
+        if ( m_pick_node_from == nullptr ||
+             m_pick_node_to == nullptr )
+        {
+            return;
+        }
+
+
     }
 
     void GLdrawingArea::mousePressEvent( QMouseEvent* ev )
     {
         if ( m_state == ST_NORMAL )
         {
-            return;
+            if ( m_pick_node_to != nullptr &&
+                 m_pick_node_from != nullptr )
+            {
+                m_pick_node_from = nullptr;
+                m_pick_node_to = nullptr;
+            }
+            for ( int q = 0; q < this->graph.nodes.size(); q++ )
+            {
+                DS::LNode<DS::LGraph<int, double>>* _node = this->graph.nodes[q];
+
+                double dx = ev->pos().x() - _node->x;
+                double dy = ev->pos().y() - _node->y;
+                double dist = sqrt( dx * dx + dy * dy );
+                if ( dist < RANGE_PICK )
+                {
+                    if ( m_pick_node_from != nullptr )
+                    {
+                        m_pick_node_to = _node;
+                        calculatePath();
+                    }
+                    else
+                    {
+                        m_pick_node_from = _node;
+                    }
+
+                    break;
+                }
+            }
         }
-        setMouseTracking( false );
+        else if ( m_state == ST_PLACING_OBSTACLE )
+        {
+            setMouseTracking( false );
 
-        m_obstacles.push_back( QRectF( m_rectTooltip->left(),
-                                       m_rectTooltip->top(),
-                                       m_rectTooltip->width(),
-                                       m_rectTooltip->height() ) );
+            m_obstacles.push_back( QRectF( m_rectTooltip->left(),
+                                           m_rectTooltip->top(),
+                                           m_rectTooltip->width(),
+                                           m_rectTooltip->height() ) );
 
-        delete m_rectTooltip;
-        m_rectTooltip = nullptr;
+            delete m_rectTooltip;
+            m_rectTooltip = nullptr;
 
-        m_state = ST_NORMAL;
+            m_state = ST_NORMAL;
+        }
     }
 
     void GLdrawingArea::placeObstacle()
@@ -214,6 +300,6 @@ namespace qt
         setMouseTracking( true );
         m_state = ST_PLACING_OBSTACLE;
 
-        m_rectTooltip = new QRectF( 0, 0, 50, 100 );
+        m_rectTooltip = new QRectF( 0, 0, OBS_WIDTH, OBS_HEIGHT );
     }
 }

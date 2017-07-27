@@ -21,6 +21,9 @@ private:
     QAction* m_act_init_nodes;
     QAction* m_act_init_graph;
     QAction* m_act_place_obstacle;
+    QAction* m_act_save;
+    QAction* m_act_open;
+    QAction* m_act_precalculate;
 
     QMenu* m_optsMenu;
 
@@ -36,6 +39,9 @@ public slots:
     void onInitNodes();
     void onInitGraph();
     void onPlaceObstacle();
+    void onSave();
+    void onOpen();
+    void onPrecalculate();
 };
 
 #endif // MAINWINDOW_H

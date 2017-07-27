@@ -42,10 +42,14 @@ namespace qt
         QBrush m_obstacleBrush;
         QPen m_obstaclePen;
 
+        QBrush m_pathBrush;
+        QPen m_pathPen;
+
         std::vector<QRectF> m_obstacles;
 
         DS::LNode<DS::LGraph<int, double>>* m_pick_node_from;
         DS::LNode<DS::LGraph<int, double>>* m_pick_node_to;
+        DS::LNode<DS::LGraph<int, double>>* m_path_node;
 
         void calculatePath();
 
@@ -57,6 +61,9 @@ namespace qt
         void initGraphNodes();
         void initGraphConnections();
         void placeObstacle();
+        void saveGraph( QString pFileName );
+        void openGraph( QString pFileName );
+        void precalculate();
 
         void mouseMoveEvent( QMouseEvent* ev ) override;
         void mousePressEvent( QMouseEvent* ev ) override;

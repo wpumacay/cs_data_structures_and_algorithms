@@ -1,6 +1,6 @@
 #-------------------------------------------------
 #
-# Project created by QtCreator 2017-07-24T15:17:32
+# Project created by QtCreator 2017-07-26T20:31:05
 #
 #-------------------------------------------------
 
@@ -8,7 +8,7 @@ QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = cs_ds_graphs
+TARGET = cs_ds_graphs_2
 TEMPLATE = app
 
 # The following define makes your compiler emit warnings if you use
@@ -27,7 +27,7 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
         gldrawingarea.cpp \
-        lib/delaunay/delaunay.c
+        lib/delaunay.c
 
 HEADERS += \
         mainwindow.h \
@@ -35,7 +35,6 @@ HEADERS += \
         graph/LEdge.h \
         graph/LNode.h \
         graph/LGraph.h \
-        lib/delaunay/delaunay.h
-
+        lib/delaunay.h
 FORMS += \
         mainwindow.ui

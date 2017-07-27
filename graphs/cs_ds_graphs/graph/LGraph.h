@@ -27,7 +27,7 @@ namespace DS
 
 		vector<Node*> nodes;
 
-        void insertNode( N node_data, double x, double y );
+        void insertNode( N node_data, double x, double y, int id );
 		void insertEdge( Node* from, Node* to, E edge_data );
 		void removeEdge( Edge* edge );
 		void removeNode( Node* node );
@@ -37,9 +37,9 @@ namespace DS
 	};
 
 	template<class N, class E>
-    void LGraph<N,E>::insertNode( N node_data, double x, double y )
+    void LGraph<N,E>::insertNode( N node_data, double x, double y, int id )
 	{
-        nodes.push_back( new LNode<LGraph<N,E> >( node_data, x, y ) );
+        nodes.push_back( new LNode<LGraph<N,E> >( node_data, x, y, id ) );
 	}
 
 	template<class N, class E>

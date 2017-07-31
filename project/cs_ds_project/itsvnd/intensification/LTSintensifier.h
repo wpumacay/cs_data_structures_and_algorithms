@@ -69,6 +69,7 @@ namespace intensifiers
         void startTabuIterations()
         {
             m_tabuIterationsCounter = m_tabuIterations;
+            m_tabuList = vector<LTSMove>();
         }
 
         void updateTabuIteration()
@@ -93,13 +94,14 @@ namespace intensifiers
 
         void run( engine::LConfiguration* pConfiguration )
         {
+            cout << "Intensifier> start" << endl;
+            startTabuIterations();
+
             pConfiguration->computeFeasibility();
 
             SwapNeighborhoods _sNeighborhoods = neighborhood::swap::makeSwapNeighborhoods( pConfiguration );
 
             SwapNeighborhoods::iterator it;
-
-            bool _foundBetter = false;
 
             engine::LConfiguration* _sCandidate = nullptr;
             engine::LConfiguration* _bestCandidate = nullptr;
@@ -120,7 +122,7 @@ namespace intensifiers
                     _sCandidate = pConfiguration->clone();
                     _sCandidate->swapCircles( _moves[q].first, _moves[q].second );
                     // Continuously optimize the new solution
-                    m_optimizer->run( _sol );
+                    m_optimizer->run( _sCandidate );
 
                     if ( _bestCandidate == nullptr || _sCandidate->isBetter( _bestCandidate ) )
                     {
@@ -130,7 +132,7 @@ namespace intensifiers
                     addToTabuList( _moves[q] );
                     updateTabuIteration();
                 }
-                if ( _bestCandidate != nullptr && pConfiguration->isBetter( _bestCandidate ) )
+                if ( _bestCandidate != nullptr && _bestCandidate->isBetter( pConfiguration ) )
                 {
                     *pConfiguration = *_bestCandidate;
                     break;
@@ -144,6 +146,8 @@ namespace intensifiers
                 // TODO: Is there a leak here?
                 // delete _sCandidate,_bestCandidate; ??
             }
+
+            cout << "Intensifier> end" << endl;
         }
 
 

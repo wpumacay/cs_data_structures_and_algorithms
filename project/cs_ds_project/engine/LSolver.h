@@ -8,13 +8,15 @@
 
 #include "../itsvnd/optimization/LBaseOptimizer.h"
 #include "../itsvnd/optimization/LGradientDescentOptimizer.h"
-#include "../itsvnd/optimization/LBS_BFGSoptimizer.h"
 #include "../itsvnd/intensification/LBaseIntensifier.h"
 #include "../itsvnd/intensification/LVNDintensifier.h"
+#include "../itsvnd/intensification/LTSintensifier.h"
 #include "../itsvnd/diversification/LBaseDiversifier.h"
 #include "../itsvnd/diversification/LRRdiversifier.h"
 
 #define OPTIMIZATION_ITERATIONS 20
+
+#define SOLVER_ITERATIONS 100
 
 namespace engine
 {
@@ -35,8 +37,8 @@ namespace engine
         {
             enum _intensifier
             {
-                LOCAL_SEARCH,
                 VND,
+                TS,
                 TS_VND
             };
         }
@@ -63,10 +65,14 @@ namespace engine
 
         static LSolver* createSolver( options::optimizer::_optimizer pOptimizer,
                                       options::intensifier::_intensifier pIntensifier );
+        
         void init( circleInstance::_circleInstance pCircleInstance, int pInstanceSize );
         ~LSolver();
         LConfiguration* configuration();
         void step();
+        void solve();
+        void reset( options::optimizer::_optimizer pOptimizer,
+                    options::intensifier::_intensifier pIntensifier );
 
         void test_swap( int indx1, int indx2 );
         void test_optimization();

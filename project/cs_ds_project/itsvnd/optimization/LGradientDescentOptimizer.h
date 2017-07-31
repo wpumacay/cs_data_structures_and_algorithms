@@ -18,11 +18,24 @@ namespace optimizers
         * @override
         * @brief gradient descent computation step
         */
+
+    #ifndef TEST_MAT_LIB
+
         void step( const PotFunction &potential, arma::mat &x, const arma::mat &res )
         {
             arma::mat _grad = computeGradient( potential, x, res );
             x = x - GRAD_STEP * _grad;
         }
+
+    #else
+
+        void step( const PotFunction &potential, engine::mat::LMatD &x, const engine::mat::LMatD &res )
+        {
+            engine::mat::LMatD _grad = computeGradient( potential, x, res );
+            x = x - _grad * GRAD_STEP;
+        }
+
+    #endif
 
         /*
         * @override
@@ -30,7 +43,7 @@ namespace optimizers
         */
         void run( engine::LConfiguration* pConfiguration )
         {
-            for ( int q = 0; q < OPTIMIZE_ITERS; q++ )
+            for ( int s = 0; s < OPTIMIZER_ITERATIONS; s++ )
             {
                 eval( pConfiguration );
             }
@@ -67,7 +80,8 @@ namespace optimizers
 
                 k = ( _loBound + _upBound ) / 2;
                 pConfiguration->getContainer().r = k * R_V;
-                for ( int q = 0; q < OPTIMIZE_ITERS; q++ )
+                
+                for ( int s = 0; s < OPTIMIZER_ITERATIONS; s++ )
                 {
                     eval( pConfiguration );
                 }

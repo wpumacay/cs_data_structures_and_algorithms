@@ -22,7 +22,6 @@ HEADERS += \
     engine/LSolver.h \
     itsvnd/optimization/LBaseOptimizer.h \
     itsvnd/optimization/LGradientDescentOptimizer.h \
-    itsvnd/optimization/LBS_BFGSoptimizer.h \
     itsvnd/neighborhood/Neighborhoods.h \
     itsvnd/intensification/LBaseIntensifier.h \
     itsvnd/intensification/LVNDintensifier.h

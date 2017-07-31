@@ -30,6 +30,7 @@ namespace intensifiers
 
         void run( engine::LConfiguration* pConfiguration )
         {
+            cout << "Intensifier> start" << endl;
             pConfiguration->computeFeasibility();
             double _best_r = pConfiguration->getContainer().r;
             int _maxIter = 20;
@@ -69,6 +70,7 @@ namespace intensifiers
                                 _foundBetter = true;
                                 *pConfiguration = *_sol;
                                 _best_r = _sol->getContainer().r;
+                                cout << "Intensifier> Better solution found: " << _best_r << endl;
                                 break;
                             }
 
@@ -87,7 +89,7 @@ namespace intensifiers
             }
             // Continuously optimize the new solution
             m_optimizer->run( pConfiguration );
-            std::cout << "finished step" << std::endl;
+            cout << "Intensifier> end" << endl;
         }
 
 

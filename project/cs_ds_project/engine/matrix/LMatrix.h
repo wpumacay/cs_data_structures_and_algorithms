@@ -182,6 +182,22 @@ namespace engine
                 return m_buff[row * m_cols + col];
             }
 
+            LMat<T> t()
+            {
+
+                LMat<T> _res( m_cols, m_rows );
+
+                for ( int p = 0; p < m_rows; p++ )
+                {
+                    for ( int q = 0; q < m_cols; q++ )
+                    {
+                        _res.set( q, p, at( p, q ) );
+                    }
+                }
+
+                return _res;
+            }
+
             T at( int row, int col ) const
             {
                 return m_buff[m_cols * row + col];

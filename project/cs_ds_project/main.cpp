@@ -1,17 +1,25 @@
 
-//#define TEST_MATRIX
+// #define TEST_MATRIX
 
 #ifndef TEST_MATRIX
 
-#include <QApplication>
-#include <QPushButton>
-#include "engine/qt/lwindow.h"
-#include "engine/LSolver.h"
 
     #define APP
-    #define USE_QT
+    // #define USE_QT
     // #define USE_GL
-    // #define NO_GRAPHICS
+    #define NO_GRAPHICS
+
+    #ifndef NO_GRAPHICS
+
+    #include <QApplication>
+    #include <QPushButton>
+    #include "engine/qt/lwindow.h"
+
+    #endif
+
+#include "engine/LSolver.h"
+#include "utils/LConsoleMenu.h"
+
 #else
 
 #include "engine/matrix/LMatrix.h"
@@ -35,13 +43,19 @@ int main( int argc, char **argv )
 
     _ret = app.exec();
 
-    #elif NO_GRAPHICS
+    #else 
+
+        #ifdef NO_GRAPHICS
 
     engine::LSolver::createSolver( engine::options::optimizer::BS_GRADIENT_DESCENT,
                                    engine::options::intensifier::VND );
 
-    engine::LSolver::instance->init( engine::circleInstance::INST_r_i );
-    // engine::LSolver::instance->solve();
+    LConsoleMenu _menu;
+    
+    _menu.showMainMenu();
+
+        #endif
+
     #endif
 
 #else

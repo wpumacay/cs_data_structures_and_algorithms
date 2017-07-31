@@ -38,6 +38,8 @@ namespace engine
                 m_intensifier = new intensifiers::LVNDintensifier( m_optimizer );
             break;
         }
+
+        m_diversifier = new diversifiers::LRRdiversifier();
     }
 
     LSolver* LSolver::createSolver( options::optimizer::_optimizer pOptimizer,
@@ -93,7 +95,7 @@ namespace engine
         // {
         //     m_optimizer->run( m_configuration );
         // }
-
+        m_diversifier->run( m_configuration );
         m_intensifier->run( m_configuration );
     }
 
@@ -104,11 +106,11 @@ namespace engine
 
     void LSolver::test_optimization()
     {
-        // Test
-        //for ( int q = 0; q < OPTIMIZATION_ITERATIONS; q++ )
-        //{
-            m_optimizer->run( m_configuration );
-        //}
+        m_optimizer->run( m_configuration );
     }
 
+    void LSolver::test_random_reset()
+    {
+        m_diversifier->run( m_configuration );
+    }
 }

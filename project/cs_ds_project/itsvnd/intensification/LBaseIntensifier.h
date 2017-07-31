@@ -13,8 +13,6 @@
 
 using namespace std;
 
-#define OPTIMIZER_ITERATIONS 20
-
 namespace intensifiers
 {
 

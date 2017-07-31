@@ -11,6 +11,8 @@
 #include "../itsvnd/optimization/LBS_BFGSoptimizer.h"
 #include "../itsvnd/intensification/LBaseIntensifier.h"
 #include "../itsvnd/intensification/LVNDintensifier.h"
+#include "../itsvnd/diversification/LBaseDiversifier.h"
+#include "../itsvnd/diversification/LRRdiversifier.h"
 
 #define OPTIMIZATION_ITERATIONS 20
 
@@ -51,6 +53,8 @@ namespace engine
         optimizers::LBaseOptimizer* m_optimizer;
         intensifiers::LBaseIntensifier* m_intensifier;
 
+        diversifiers::LBaseDiversifier* m_diversifier;
+
         LSolver( options::optimizer::_optimizer pOptimizer,
                  options::intensifier::_intensifier pIntensifier );
     public :
@@ -66,6 +70,7 @@ namespace engine
 
         void test_swap( int indx1, int indx2 );
         void test_optimization();
+        void test_random_reset();
 
     };
 

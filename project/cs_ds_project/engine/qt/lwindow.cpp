@@ -68,6 +68,7 @@ namespace engine
             QPushButton* _btn_test_reset = new QPushButton( "Reset" );
             QPushButton* _btn_test_general = new QPushButton( "Just a test" );
             QPushButton* _btn_test_swap_neighborhood = new QPushButton( "Swap Neighborhood" );
+            QPushButton* _btn_test_random_reset = new QPushButton( "Random Reset" );
 
             connect( _btn_test_solver_step, SIGNAL( clicked() ), this, SLOT( onTest_Solver() ) );
             connect( _btn_test_potential, SIGNAL( clicked() ), this, SLOT( onTest_Potential_U() ) );
@@ -76,6 +77,7 @@ namespace engine
             connect( _btn_test_reset, SIGNAL( clicked() ), this, SLOT( onTest_Reset() ) );
             connect( _btn_test_general, SIGNAL( clicked() ), this, SLOT( onTest_General() ) );
             connect( _btn_test_swap_neighborhood, SIGNAL( clicked() ), this, SLOT( onTest_SwapNeighborhood() ) );
+            connect( _btn_test_random_reset, SIGNAL( clicked() ), this, SLOT( onTest_RandomReset() ) );
 
             _layout_test_options->addWidget( _btn_test_solver_step );
             _layout_test_options->addWidget( _btn_test_potential );
@@ -84,6 +86,7 @@ namespace engine
             _layout_test_options->addWidget( _btn_test_reset );
             _layout_test_options->addWidget( _btn_test_general );
             _layout_test_options->addWidget( _btn_test_swap_neighborhood );
+            _layout_test_options->addWidget( _btn_test_random_reset );
 
             m_sbox_test_swap_1 = new QSpinBox();
             m_sbox_test_swap_1->setRange( 1, 20 );
@@ -156,6 +159,12 @@ namespace engine
         {
             LSolver::instance->test_swap( m_sbox_test_swap_1->value() - 1,
                                           m_sbox_test_swap_2->value() - 1 );
+            m_lbl_result->setText( tr( "res: " ) + QString::number( LSolver::instance->configuration()->getContainer().r ) );
+        }
+
+        void LWindow::onTest_RandomReset()
+        {
+            LSolver::instance->test_random_reset();
             m_lbl_result->setText( tr( "res: " ) + QString::number( LSolver::instance->configuration()->getContainer().r ) );
         }
     }

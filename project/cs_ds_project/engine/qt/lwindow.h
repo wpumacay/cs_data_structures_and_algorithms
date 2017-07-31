@@ -47,6 +47,7 @@ namespace engine
             void onTest_General();
 
             void onTest_SwapNeighborhood();
+            void onTest_RandomReset();
         };
     }
 }

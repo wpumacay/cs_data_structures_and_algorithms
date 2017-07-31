@@ -11,7 +11,7 @@
 
 using namespace std; 
 
-#define RANGE_U_FEASIBLE 0.001
+#define RANGE_U_FEASIBLE 0.2
 
 namespace engine
 {
@@ -26,9 +26,17 @@ namespace engine
 		};
 	}
 
+#ifndef TEST_MAT_LIB
 
     double potentialFunction( arma::mat pConf, arma::mat pRes );
 	double testFunction( arma::mat pConf, arma::mat pRes );
+
+#else
+
+    double potentialFunction( engine::mat::LMatD pConf, engine::mat::LMatD pRes );
+    double testFunction( engine::mat::LMatD pConf, engine::mat::LMatD pRes );
+
+#endif
 
 
 	class LConfiguration
@@ -54,7 +62,7 @@ namespace engine
         void updateFeasibility( double val )
         {
             m_feasibility = val;
-            if ( m_feasibility <= 0.0 )
+            if ( m_feasibility <= RANGE_U_FEASIBLE )
             {
                 m_isFeasible = true;
             }
@@ -66,10 +74,16 @@ namespace engine
 
         void computeFeasibility()
         {
+        #ifndef TEST_MAT_LIB
             arma::mat _x = arma::zeros<arma::mat>( 2 * this->size + 1, 1 );
             // A vector for the extra resources needed ( radius )
             arma::mat _r = arma::zeros<arma::mat>( this->size, 1 );
-
+        #else
+            engine::mat::LMatD _x = engine::mat::LMat<double>::simple( 2 * this->size + 1, 1,
+                                                               engine::mat::fill::ZEROS );
+            engine::mat::LMatD _r = engine::mat::LMat<double>::simple( this->size, 1,
+                                                               engine::mat::fill::ZEROS );
+        #endif
             _x( 0, 0 ) = ( this->getContainer() ).r;
             for ( int q = 0; q < this->size; q++ )
             {

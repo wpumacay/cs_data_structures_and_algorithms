@@ -31,7 +31,10 @@ namespace intensifiers
         void run( engine::LConfiguration* pConfiguration )
         {
             pConfiguration->computeFeasibility();
-            while ( true )
+            double _best_r = pConfiguration->getContainer().r;
+            int _maxIter = 20;
+            int _iterCount = 0;
+            while ( _iterCount < _maxIter )
             {
                 SwapNeighborhoods _sNeighborhoods = neighborhood::swap::makeSwapNeighborhoods( pConfiguration );
 
@@ -57,16 +60,18 @@ namespace intensifiers
                         _sol->swapCircles( _circle1, _circle2 );
 
                         // Continuously optimize the new solution
-                        for ( int s = 0; s < OPTIMIZER_ITERATIONS; s++ )
-                        {
-                            m_optimizer->run( _sol );
-                        }
+                        m_optimizer->run( _sol );
 
                         if ( _sol->isBetter( pConfiguration ) )
                         {
-                            _foundBetter = true;
-                            *pConfiguration = *_sol;
-                            break;
+                            if ( std::abs( _sol->getContainer().r - _best_r ) > 0.5 )
+                            {
+                                _foundBetter = true;
+                                *pConfiguration = *_sol;
+                                _best_r = _sol->getContainer().r;
+                                break;
+                            }
+
                         }
                         // TODO: Is there a leak here?
                         // delete _sol; ??
@@ -78,12 +83,10 @@ namespace intensifiers
                 {
                     break;
                 }
+                _iterCount++;
             }
             // Continuously optimize the new solution
-            for ( int s = 0; s < OPTIMIZER_ITERATIONS; s++ )
-            {
-                m_optimizer->run( pConfiguration );
-            }
+            m_optimizer->run( pConfiguration );
             std::cout << "finished step" << std::endl;
         }
 

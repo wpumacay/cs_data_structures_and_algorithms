@@ -3,6 +3,14 @@
 
 #define L_USE_QT
 
+#define TEST_MAT_LIB
+
+#ifdef TEST_MAT_LIB
+
+#include "matrix/LMatrix.h"
+
+#endif
+
 namespace engine
 {
 

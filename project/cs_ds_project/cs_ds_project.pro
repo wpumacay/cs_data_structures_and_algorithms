@@ -15,6 +15,7 @@ SOURCES += \
 HEADERS += \
     engine/qt/lcirclerenderer.h \
     engine/qt/lwindow.h \
+    engine/matrix/LMatrix.h \
     engine/LCommon.h \
     engine/LCircle.h \
     engine/LConfiguration.h \

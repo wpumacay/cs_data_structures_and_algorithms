@@ -8,11 +8,19 @@
 namespace engine
 {
 
+
+#ifndef TEST_MAT_LIB
     double potentialFunction( arma::mat pConf, arma::mat pRes )
+#else
+    double potentialFunction( engine::mat::LMatD pConf, engine::mat::LMatD pRes )
+#endif
 	{
 		double _res = 0.0;
-
-		int _nCircles = ( pConf.n_rows - 1 ) / 2;
+#ifndef TEST_MAT_LIB
+        int _nCircles = ( pConf.n_rows - 1 ) / 2;
+#else
+        int _nCircles = ( pConf.rows() - 1 ) / 2;
+#endif
 		double _rContainer = pConf( 0, 0 );
 		// Calculate overlap with container
 		for ( int q = 0; q < _nCircles; q++ )
@@ -49,10 +57,18 @@ namespace engine
 		return _res;
 	}
 
+#ifndef TEST_MAT_LIB
 	double testFunction( arma::mat pConf, arma::mat pRes )
+#else
+    double testFunction( engine::mat::LMatD pConf, engine::mat::LMatD pRes )
+#endif
 	{
 		double _res = 0.0;
+#ifndef TEST_MAT_LIB
 		for ( int q = 0; q < pConf.n_rows; q++ )
+#else
+        for ( int q = 0; q < pConf.rows(); q++ )
+#endif
 		{
             _res += ( pConf( q, 0 ) - 1 ) * ( pConf( q, 0 ) - 1 );
 		}

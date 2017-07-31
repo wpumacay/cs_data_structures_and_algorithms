@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include <armadillo>
 #include <iostream>
 #include <cmath>
 
@@ -12,14 +11,18 @@
 
 #include "../../engine/matrix/LMatrix.h"
 
+#else
+
+#include <armadillo>
+
 #endif
 
 
 using namespace std;
-using namespace arma;
 
 #ifndef TEST_MAT_LIB
 
+using namespace arma;
 typedef double ( *PotFunction )( arma::mat, arma::mat );
 
 #else

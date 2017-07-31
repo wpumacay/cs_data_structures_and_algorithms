@@ -4,7 +4,12 @@
 #include "LBaseOptimizer.h"
 
 using namespace std;
+
+#ifndef TEST_MAT_LIB
+
 using namespace arma;
+
+#endif
 
 namespace optimizers
 {

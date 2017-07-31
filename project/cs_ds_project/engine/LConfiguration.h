@@ -1,13 +1,17 @@
 
 #pragma once
 
-#include <vector>
-#include <iostream>
-#include <armadillo>
-#include <cmath>
-
 
 #include "LCircle.h"
+
+#include <vector>
+#include <iostream>
+
+#ifndef TEST_MAT_LIB
+#include <armadillo>
+#endif
+
+#include <cmath>
 
 using namespace std; 
 

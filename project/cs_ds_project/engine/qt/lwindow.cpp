@@ -5,10 +5,11 @@
 #include <QPushButton>
 #include <QTimer>
 #include <QMessageBox>
-
-#include <armadillo>
-
 #include "../LSolver.h"
+
+#ifndef TEST_MAT_LIB
+#include <armadillo>
+#endif
 
 namespace engine
 {

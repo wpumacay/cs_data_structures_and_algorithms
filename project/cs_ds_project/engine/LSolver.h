@@ -8,6 +8,7 @@
 
 #include "../itsvnd/optimization/LBaseOptimizer.h"
 #include "../itsvnd/optimization/LGradientDescentOptimizer.h"
+#include "../itsvnd/optimization/LBS_BFGSoptimizer.h"
 #include "../itsvnd/intensification/LBaseIntensifier.h"
 #include "../itsvnd/intensification/LVNDintensifier.h"
 

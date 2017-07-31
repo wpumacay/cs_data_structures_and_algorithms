@@ -17,6 +17,7 @@ typedef double ( *PotFunction )( arma::mat, arma::mat );
 #define ITERS_TEST 5000
 #define GRAD_STEP 0.1
 #define R_V 0.1
+#define OPTIMIZE_ITERS 20
 
 namespace optimizers
 {

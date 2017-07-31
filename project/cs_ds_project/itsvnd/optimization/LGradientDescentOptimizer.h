@@ -30,7 +30,10 @@ namespace optimizers
         */
         void run( engine::LConfiguration* pConfiguration )
         {
-            eval( pConfiguration );
+            for ( int q = 0; q < OPTIMIZE_ITERS; q++ )
+            {
+                eval( pConfiguration );
+            }
 
             pConfiguration->computeFeasibility();
 
@@ -64,7 +67,10 @@ namespace optimizers
 
                 k = ( _loBound + _upBound ) / 2;
                 pConfiguration->getContainer().r = k * R_V;
-                this->eval( pConfiguration );
+                for ( int q = 0; q < OPTIMIZE_ITERS; q++ )
+                {
+                    eval( pConfiguration );
+                }
                 pConfiguration->computeFeasibility();
 
                 if ( _upBound - _loBound <= 1 && k == _loBound )

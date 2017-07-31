@@ -19,10 +19,12 @@ namespace engine
         {
             case options::optimizer::BS_GRADIENT_DESCENT :
                 m_optimizer = new optimizers::LGradientDescentOptimizer();
+                // m_optimizer = new optimizers::LBS_BFGSoptimizer();
             break;
 
             default :
                 m_optimizer = new optimizers::LGradientDescentOptimizer();
+                // m_optimizer = new optimizers::LBS_BFGSoptimizer();
             break;
         }
 
@@ -103,10 +105,10 @@ namespace engine
     void LSolver::test_optimization()
     {
         // Test
-        for ( int q = 0; q < OPTIMIZATION_ITERATIONS; q++ )
-        {
+        //for ( int q = 0; q < OPTIMIZATION_ITERATIONS; q++ )
+        //{
             m_optimizer->run( m_configuration );
-        }
+        //}
     }
 
 }

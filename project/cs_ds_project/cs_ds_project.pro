@@ -24,6 +24,8 @@ HEADERS += \
     itsvnd/optimization/LGradientDescentOptimizer.h \
     itsvnd/neighborhood/Neighborhoods.h \
     itsvnd/intensification/LBaseIntensifier.h \
-    itsvnd/intensification/LVNDintensifier.h
+    itsvnd/intensification/LVNDIntensifier.h \
+    itsvnd/intensification/LTSIntensifier.h \
+    itsvnd/intensification/LTS_VNDintensifier.h
 
 LIBS += -llapack -lblas -larmadillo

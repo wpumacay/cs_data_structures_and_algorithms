@@ -8,6 +8,7 @@
 #include <vector>
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
 
 
 using namespace std;
@@ -35,7 +36,7 @@ namespace diversifiers
 
         void run( engine::LConfiguration* pConfiguration )
         {
-            m_perturbationStrength = pConfiguration->size / 6;
+            m_perturbationStrength = rand() % ( pConfiguration->size / 6 ) + 1;
 
             vector<int> _opts;
             for ( int q = 0; q < pConfiguration->size; q++ )

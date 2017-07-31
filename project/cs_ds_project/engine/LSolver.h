@@ -11,6 +11,7 @@
 #include "../itsvnd/intensification/LBaseIntensifier.h"
 #include "../itsvnd/intensification/LVNDintensifier.h"
 #include "../itsvnd/intensification/LTSintensifier.h"
+#include "../itsvnd/intensification/LTS_VNDintensifier.h"
 #include "../itsvnd/diversification/LBaseDiversifier.h"
 #include "../itsvnd/diversification/LRRdiversifier.h"
 
@@ -49,6 +50,7 @@ namespace engine
     {
 
         LConfiguration* m_configuration;
+        LConfiguration* m_bestConfiguration;
 
         options::optimizer::_optimizer m_optimizerId;
         options::intensifier::_intensifier m_intensifierId;

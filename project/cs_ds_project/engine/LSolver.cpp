@@ -17,6 +17,7 @@ namespace engine
         m_intensifierId = pIntensifier;
 
         m_configuration = nullptr;
+        m_bestConfiguration = nullptr;
 
         switch ( m_optimizerId )
         {
@@ -39,6 +40,11 @@ namespace engine
             case options::intensifier::TS :
                 cout << "Initialized TS intensifier" << endl;
                 m_intensifier = new intensifiers::LTSintensifier( m_optimizer );
+            break;
+
+            case options::intensifier::TS_VND :
+                cout << "Initialized TS intensifier" << endl;
+                m_intensifier = new intensifiers::LTS_VNDintensifier( m_optimizer );
             break;
 
             default :
@@ -69,11 +75,15 @@ namespace engine
     void LSolver::init( circleInstance::_circleInstance pCircleInstance, int pInstanceSize )
     {
         m_configuration = LConfiguration::initializeFromInstance( pCircleInstance, pInstanceSize );
+        m_bestConfiguration = LConfiguration::initializeFromInstance( pCircleInstance, pInstanceSize );
 
-        if ( m_intensifierId == options::intensifier::TS ||
-             m_intensifierId == options::intensifier::TS_VND )
+        if ( m_intensifierId == options::intensifier::TS )
         {
             reinterpret_cast<intensifiers::LTSintensifier*>( m_intensifier )->setTabuIterations( 10 * pInstanceSize );
+        }
+        else if ( m_intensifierId == options::intensifier::TS_VND )
+        {
+            reinterpret_cast<intensifiers::LTS_VNDintensifier*>( m_intensifier )->setTabuIterations( 10 * pInstanceSize );
         }
     }
 
@@ -111,10 +121,15 @@ namespace engine
     {
         for ( int q = 0; q < SOLVER_ITERATIONS; q++ )
         {
+            *m_configuration = *m_bestConfiguration;
             cout << "Iteration " << ( q + 1 ) << " -------" << endl;
-            // m_diversifier->run( m_configuration );
+            m_diversifier->run( m_configuration );
             m_intensifier->run( m_configuration );
-            cout << "LSolver> best so far: " << m_configuration->getContainer().r << endl;
+            if ( m_configuration->isBetter( m_bestConfiguration ) )
+            {
+                *m_bestConfiguration = *m_configuration;
+            }
+            cout << "LSolver> best so far: " << m_bestConfiguration->getContainer().r << endl;
         }
     }
 
@@ -128,6 +143,10 @@ namespace engine
         {
             delete m_configuration;
         }
+        if ( m_bestConfiguration != nullptr )
+        {
+            delete m_bestConfiguration;
+        }
         if ( m_optimizer != nullptr )
         {
             delete m_optimizer;
@@ -139,6 +158,7 @@ namespace engine
 
 
         m_configuration = nullptr;
+        m_bestConfiguration = nullptr;
 
         switch ( m_optimizerId )
         {
@@ -161,6 +181,11 @@ namespace engine
             case options::intensifier::TS :
                 cout << "Initialized TS intensifier" << endl;
                 m_intensifier = new intensifiers::LTSintensifier( m_optimizer );
+            break;
+
+            case options::intensifier::TS_VND :
+                cout << "Initialized TS_VND intensifier" << endl;
+                m_intensifier = new intensifiers::LTS_VNDintensifier( m_optimizer );
             break;
 
             default :

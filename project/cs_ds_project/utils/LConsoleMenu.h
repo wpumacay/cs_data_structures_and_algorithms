@@ -33,7 +33,7 @@ public :
 		m_optimizerId = 0;
 		m_intensifierId = 0;
 
-		m_instanceSize = 5;
+		m_instanceSize = 26;
 		m_instanceId = 0;
 	}
 
@@ -202,7 +202,7 @@ public :
 	{
 		cout << "****************************************" << endl;
 
-		cout << "Instance size ( 1-50 ):" << endl;
+		cout << "Instance size ( 26-50 ):" << endl;
 
 		cout << "****************************************" << endl;
 
@@ -212,7 +212,7 @@ public :
 			cout << "Opt: ";
 			cin >> _option;
 
-		} while( askEnterValid( 1, 50, _option ) );
+		} while( askEnterValid( 26, 50, _option ) );
 
 		m_instanceSize = _option;
 

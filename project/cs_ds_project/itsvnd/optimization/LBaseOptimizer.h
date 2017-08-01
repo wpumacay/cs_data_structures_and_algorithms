@@ -148,11 +148,17 @@ namespace optimizers
 
             this->step( engine::potentialFunction, _x, _r );
 
-            ( pConfiguration->getContainer() ).r = _x( 0, 0 );
+            if ( pConfiguration->getContainer().isUpdatable )
+            {
+                ( pConfiguration->getContainer() ).r = _x( 0, 0 );
+            }
             for ( int q = 0; q < pConfiguration->size; q++ )
             {
-                ( pConfiguration->getCircleByIndx( q ) ).pos.x = _x( 2 * q + 1, 0 );
-                ( pConfiguration->getCircleByIndx( q ) ).pos.y = _x( 2 * q + 2, 0 );
+                if ( pConfiguration->getCircleByIndx( q ).isUpdatable )
+                {
+                    ( pConfiguration->getCircleByIndx( q ) ).pos.x = _x( 2 * q + 1, 0 );
+                    ( pConfiguration->getCircleByIndx( q ) ).pos.y = _x( 2 * q + 2, 0 );
+                }
             }
         }
 
@@ -161,6 +167,11 @@ namespace optimizers
         */
         virtual void run( engine::LConfiguration* pConfiguration ) = 0;
 
+
+        /*
+        * @param {engine::LConfiguration} pConfiguration current circles configuration
+        */
+        virtual void runLite( engine::LConfiguration* pConfiguration ) = 0;
 
     };
 

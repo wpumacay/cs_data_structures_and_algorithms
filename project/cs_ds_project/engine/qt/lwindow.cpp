@@ -129,7 +129,7 @@ namespace engine
 
         void LWindow::onTest_Solver()
         {
-            LSolver::instance->step();
+            LSolver::instance->solve();
 
             m_lbl_result->setText( tr( "res: " ) + QString::number( LSolver::instance->configuration()->getContainer().r ) );
         }
@@ -148,6 +148,7 @@ namespace engine
 
         void LWindow::onTest_Reset()
         {
+            LSolver::instance->test_insert();
         }
 
         void LWindow::onTest_General()

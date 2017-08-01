@@ -8,6 +8,7 @@
 
 #include "lcirclerenderer.h"
 #include "../LSolver.h"
+#include "../../itsvnd/neighborhood/Neighborhoods.h"
 
 namespace engine
 {
@@ -93,6 +94,15 @@ namespace engine
             QPointF _center( _container.pos.x * DRAW_SCALE, _container.pos.y * DRAW_SCALE );
             _painter.setPen( _container.hit ? _color_hit : _color_no_hit );
             _painter.drawEllipse( _center, _container.r * DRAW_SCALE, _container.r * DRAW_SCALE );
+
+            InsertNeighborhood& _pts = LSolver::instance->p_insNeigh;
+
+            for ( int q = 0; q < _pts.size(); q++ )
+            {
+                QPointF _center( _pts[q].first.x * DRAW_SCALE, _pts[q].first.y * DRAW_SCALE );
+                _painter.setPen( _color_no_hit );
+                _painter.drawEllipse( _center, 1 * DRAW_SCALE, 1 * DRAW_SCALE );                
+            }
         }
     }
 

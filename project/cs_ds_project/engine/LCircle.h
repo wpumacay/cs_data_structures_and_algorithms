@@ -22,14 +22,18 @@ namespace engine
 		bool hit;
 		int id;
 
+        bool isUpdatable;
+
         LCircle()
         {
             this->r = 1;
             this->pos.x = 0;
             this->pos.y = 0;
+            this->isUpdatable = true;
 
             isDynamic = true;
             hit = false;
+
         }
 
 		LCircle( double x, double y, double r )
@@ -37,6 +41,7 @@ namespace engine
 			this->r = r;
 			this->pos.x = x;
 			this->pos.y = y;
+			this->isUpdatable = true;
 
 			this->isDynamic = true;
 			this->inInitialization = false;
@@ -50,7 +55,7 @@ namespace engine
 			this->r = other.r;
 			this->pos.x = other.pos.x;
 			this->pos.y = other.pos.y;
-
+			this->isUpdatable = other.isUpdatable;
             this->isDynamic = other.isDynamic;
             hit = other.hit;
             this->id = other.id;
@@ -66,7 +71,7 @@ namespace engine
 			this->r = other.r;
 			this->pos.x = other.pos.x;
 			this->pos.y = other.pos.y;
-
+			this->isUpdatable = other.isUpdatable;
 			this->isDynamic = other.isDynamic;
 			this->hit = other.hit;
 			this->id = other.id;

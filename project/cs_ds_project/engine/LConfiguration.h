@@ -15,7 +15,7 @@
 
 using namespace std; 
 
-#define RANGE_U_FEASIBLE 0.2
+#define RANGE_U_FEASIBLE 1
 
 namespace engine
 {
@@ -33,11 +33,13 @@ namespace engine
 #ifndef TEST_MAT_LIB
 
     double potentialFunction( arma::mat pConf, arma::mat pRes );
+    double containerPotentialFunction( arma::mat pConf, arma::mat pRes );
 	double testFunction( arma::mat pConf, arma::mat pRes );
 
 #else
 
     double potentialFunction( engine::mat::LMatD pConf, engine::mat::LMatD pRes );
+    double containerPotentialFunction( engine::mat::LMatD pConf, engine::mat::LMatD pRes );
     double testFunction( engine::mat::LMatD pConf, engine::mat::LMatD pRes );
 
 #endif
@@ -49,7 +51,9 @@ namespace engine
 	private :
 
 		double m_feasibility;
-		bool m_isFeasible;
+        bool m_isFeasible;
+        double m_containerFeasibility;
+        bool m_isContainerFeasible;
 		vector<LCircle> m_circles;
 		vector<LCircle> m_bfCircles;
 		LCircle m_container;
@@ -62,6 +66,11 @@ namespace engine
 		{
 			return m_feasibility;
 		}
+
+        bool isFeasible()
+        {
+            return m_isFeasible;
+        }
 
         void updateFeasibility( double val )
         {
@@ -99,10 +108,46 @@ namespace engine
             updateFeasibility( potentialFunction( _x, _r ) );
         }
 
-		bool isFeasible()
-		{
-			return m_isFeasible;
-		}
+        bool isContainerFeasible()
+        {
+            return m_isContainerFeasible;
+        }
+
+        void updateContainerFeasibility( double val )
+        {
+            m_containerFeasibility = val;
+            if ( m_containerFeasibility <= RANGE_U_FEASIBLE )
+            {
+                m_isContainerFeasible = true;
+            }
+            else
+            {
+                m_isContainerFeasible = false;
+            }
+        }
+
+        void computeContainerFeasibility()
+        {
+        #ifndef TEST_MAT_LIB
+            arma::mat _x = arma::zeros<arma::mat>( 2 * this->size + 1, 1 );
+            // A vector for the extra resources needed ( radius )
+            arma::mat _r = arma::zeros<arma::mat>( this->size, 1 );
+        #else
+            engine::mat::LMatD _x = engine::mat::LMat<double>::simple( 2 * this->size + 1, 1,
+                                                               engine::mat::fill::ZEROS );
+            engine::mat::LMatD _r = engine::mat::LMat<double>::simple( this->size, 1,
+                                                               engine::mat::fill::ZEROS );
+        #endif
+            _x( 0, 0 ) = ( this->getContainer() ).r;
+            for ( int q = 0; q < this->size; q++ )
+            {
+                _x( 2 * q + 1, 0 ) = ( this->getCircleByIndx( q ) ).pos.x;
+                _x( 2 * q + 2, 0 ) = ( this->getCircleByIndx( q ) ).pos.y;
+                _r( q, 0 ) = ( this->getCircleByIndx( q ) ).r;
+            }
+
+            updateContainerFeasibility( containerPotentialFunction( _x, _r ) );
+        }
 
 		LConfiguration()
 		{
@@ -183,25 +228,25 @@ namespace engine
 
         bool isBetter( LConfiguration* other )
         {
-            if ( other->isFeasible() && this->isFeasible() )
-            {
+            // if ( other->isFeasible() && this->isFeasible() )
+            // {
                 return this->m_container.r < other->m_container.r;
-            }
-            else if ( ( other->isFeasible() && this->feasibility() < RANGE_U_FEASIBLE ) ||
-                      ( this->isFeasible() && other->feasibility() < RANGE_U_FEASIBLE ) )
-            {
-                return this->m_container.r < other->m_container.r;
-            }
-            else if ( other->isFeasible() )
-            {
-                return false;
-            }
-            else if ( this->isFeasible() )
-            {
-                return true;
-            }
+            // }
+            // else if ( ( other->isFeasible() && this->feasibility() < RANGE_U_FEASIBLE ) ||
+            //           ( this->isFeasible() && other->feasibility() < RANGE_U_FEASIBLE ) )
+            // {
+            //     return this->m_container.r < other->m_container.r;
+            // }
+            // else if ( other->isFeasible() )
+            // {
+            //     return false;
+            // }
+            // else if ( this->isFeasible() )
+            // {
+            //     return true;
+            // }
             
-            return this->feasibility() < other->feasibility();
+            // return this->feasibility() < other->feasibility();
         }
 
         static LConfiguration* initializeFromInstance( circleInstance::_circleInstance pCircleInstance, int pSize = 7 )

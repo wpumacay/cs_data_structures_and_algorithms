@@ -14,6 +14,7 @@
 #include "../itsvnd/intensification/LTS_VNDintensifier.h"
 #include "../itsvnd/diversification/LBaseDiversifier.h"
 #include "../itsvnd/diversification/LRRdiversifier.h"
+#include "../itsvnd/neighborhood/Neighborhoods.h"
 
 #define OPTIMIZATION_ITERATIONS 20
 
@@ -59,6 +60,7 @@ namespace engine
 
         diversifiers::LBaseDiversifier* m_diversifier;
 
+
         LSolver( options::optimizer::_optimizer pOptimizer,
                  options::intensifier::_intensifier pIntensifier );
     public :
@@ -79,7 +81,9 @@ namespace engine
         void test_swap( int indx1, int indx2 );
         void test_optimization();
         void test_random_reset();
+        void test_insert();
 
+        InsertNeighborhood p_insNeigh;
     };
 
 

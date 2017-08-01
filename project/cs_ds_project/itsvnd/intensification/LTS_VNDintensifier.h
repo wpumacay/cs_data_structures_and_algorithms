@@ -63,10 +63,10 @@ namespace intensifiers
 
 		void run( engine::LConfiguration* pConfiguration )
 		{
-			cout << "VND-Intensifier ----" << endl;
-			m_vnd_intensifier->run( pConfiguration );
 			cout << "TS-Intensifier ----" << endl;
 			m_ts_intensifier->run( pConfiguration );
+			cout << "VND-Intensifier ----" << endl;
+			m_vnd_intensifier->run( pConfiguration );
 		}
 
 	};

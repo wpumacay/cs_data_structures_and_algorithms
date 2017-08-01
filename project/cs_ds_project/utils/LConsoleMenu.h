@@ -238,7 +238,7 @@ public :
 
 		} while( askEnterValid( 1, 3, _option ) );
 
-		m_instanceSize = _option - 1;
+		m_instanceId = _option - 1;
 
 		showTestMenu();
 	}

@@ -89,6 +89,30 @@ namespace intensifiers
             }
             // Continuously optimize the new solution
             m_optimizer->run( pConfiguration );
+
+
+            InsertNeighborhood _iNeighborhood = neighborhood::insert::makeInsertNeighborhood( pConfiguration, m_optimizer );
+
+            engine::LConfiguration* _sol = pConfiguration->clone();                                                                                          
+
+            for ( int q = 0; q < _iNeighborhood.size(); q++ )
+            {
+                engine::LPoint& _pt = _iNeighborhood[q].first;
+
+                _sol->getCircleByIndx( q ).pos.x = _pt.x;
+                _sol->getCircleByIndx( q ).pos.y = _pt.y;
+            }
+
+            m_optimizer->run( _sol );
+
+            if ( _sol->isBetter( pConfiguration ) )
+            {
+                *pConfiguration = *_sol;
+                _best_r = _sol->getContainer().r;
+                cout << "Intensifier> Better solution found by insert: " << _best_r << endl;
+            }
+
+
             cout << "Intensifier> end" << endl;
         }
 

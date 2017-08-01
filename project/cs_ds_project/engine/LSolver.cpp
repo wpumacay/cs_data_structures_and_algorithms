@@ -125,11 +125,12 @@ namespace engine
             cout << "Iteration " << ( q + 1 ) << " -------" << endl;
             m_diversifier->run( m_configuration );
             m_intensifier->run( m_configuration );
-            if ( m_configuration->isBetter( m_bestConfiguration ) )
+            if ( m_configuration->getContainer().r < m_bestConfiguration->getContainer().r )
             {
                 *m_bestConfiguration = *m_configuration;
             }
             cout << "LSolver> best so far: " << m_bestConfiguration->getContainer().r << endl;
+            cout << "LSolver> feasibility: " << m_bestConfiguration->feasibility() << endl;
         }
     }
 
@@ -209,6 +210,12 @@ namespace engine
     void LSolver::test_random_reset()
     {
         m_diversifier->run( m_configuration );
+    }
+
+    void LSolver::test_insert()
+    {
+        p_insNeigh = neighborhood::insert::makeInsertNeighborhood( m_configuration,
+                                                                   m_optimizer );
     }
 
 }

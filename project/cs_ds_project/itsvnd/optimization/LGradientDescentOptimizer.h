@@ -54,11 +54,14 @@ namespace optimizers
             }
 
             pConfiguration->computeFeasibility();
+            pConfiguration->computeContainerFeasibility();
 
-            if ( !pConfiguration->isFeasible() )
+            if ( !pConfiguration->isContainerFeasible() )
             {
                 return;// Return with this configuration
             }
+
+            pConfiguration->getContainer().isUpdatable = false;
 
             // Do binary search to look for a better one
             int k = pConfiguration->getContainer().r / R_V;
@@ -74,7 +77,7 @@ namespace optimizers
 
             do
             {
-                if ( pConfiguration->isFeasible() )
+                if ( pConfiguration->isContainerFeasible() )
                 {
                     _upBound = k - 1;
                 }
@@ -91,6 +94,7 @@ namespace optimizers
                     eval( pConfiguration );
                 }
                 pConfiguration->computeFeasibility();
+                pConfiguration->computeContainerFeasibility();
 
                 if ( _upBound - _loBound <= 1 && k == _loBound )
                 {
@@ -98,6 +102,72 @@ namespace optimizers
                 }
 
             }while( _upBound > _loBound );
+
+            pConfiguration->getContainer().isUpdatable = true;
+        }
+
+        /*
+        * @override
+        * @brief binary-search based gradient descent implementation
+        */
+        void runLite( engine::LConfiguration* pConfiguration )
+        {
+            for ( int s = 0; s < 4; s++ )
+            {
+                eval( pConfiguration );
+            }
+
+            pConfiguration->computeFeasibility();
+            pConfiguration->computeContainerFeasibility();
+
+            if ( !pConfiguration->isContainerFeasible() )
+            {
+                return;// Return with this configuration
+            }
+
+            pConfiguration->getContainer().isUpdatable = false;
+
+            // Do binary search to look for a better one
+            int k = pConfiguration->getContainer().r / R_V;
+            int _upBound = k - 1;
+            int _loBound = 0;
+            double _sum;
+            for ( int q = 0; q < pConfiguration->size; q++ )
+            {
+                double _frac = pConfiguration->getCircleByIndx( q ).r / R_V;
+                _sum += _frac * _frac;
+            }
+            _loBound = floor( sqrt( _sum ) );
+
+            do
+            {
+                if ( pConfiguration->isContainerFeasible() )
+                {
+                    _upBound = k - 1;
+                }
+                else
+                {
+                    _loBound = k;
+                }
+
+                k = ( _loBound + _upBound ) / 2;
+                pConfiguration->getContainer().r = k * R_V;
+
+                for ( int s = 0; s < 4; s++ )
+                {
+                    eval( pConfiguration );
+                }
+                pConfiguration->computeFeasibility();
+                pConfiguration->computeContainerFeasibility();
+
+                if ( _upBound - _loBound <= 1 && k == _loBound )
+                {
+                    break;
+                }
+
+            }while( _upBound > _loBound );
+
+            pConfiguration->getContainer().isUpdatable = true;
         }
     };
 

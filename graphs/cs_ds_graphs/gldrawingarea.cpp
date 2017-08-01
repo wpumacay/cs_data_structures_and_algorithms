@@ -15,20 +15,20 @@
 
 #include "lib/delaunay.h"
 
+// *********************************************************
+// NUMBER OF RANDOM NODES IN THE GRAPH
 #define GRAPH_NODES 100
-
+// PARAMETER FOR THE COLLISION DETECTION OF OBSTACLE-EDGE
 #define DELTA 10
-
-#define GRAPH_AREA_X 100
-#define GRAPH_AREA_Y 100
-
+// OBSTACLE DIMENSIONS
 #define OBS_WIDTH 200
 #define OBS_HEIGHT 200
-
+// GRID SIZE
 #define GRID_X 10
 #define GRID_Y 10
-
+// PARAMETER FOR THE COLLISION DETECTION WITH A NODE
 #define RANGE_PICK 5.0
+// *********************************************************
 
 #define RANDOM() ( rand() / ( float )RAND_MAX )
 
@@ -52,6 +52,7 @@ namespace qt
         m_pick_node_to = nullptr;
         m_path_node = nullptr;
 
+        // Colors to use **********************************
         m_bgBrush = QBrush( QColor( 0, 0, 0 ) );
         m_bgPen = QPen( Qt::black );
 
@@ -66,6 +67,7 @@ namespace qt
 
         m_pathBrush = QBrush( QColor( 0, 255, 0 ) );
         m_pathPen = QPen( Qt::green, 5 );
+        // *************************************************
 
         QTimer* _timer = new QTimer( this );
 
@@ -77,8 +79,10 @@ namespace qt
 
     void GLdrawingArea::nextAnimationFrame()
     {
+        // Check if obstacle contains a node or edges, and delete them accordingly ****************
         for ( int q = 0; q < this->graph.nodes.size(); q++ )
         {
+            // Check with nodes
             DS::LNode<DS::LGraph<int, double> >* _node = this->graph.nodes[q];
 
             for ( int s = 0; s < m_obstacles.size(); s++ )
@@ -91,7 +95,7 @@ namespace qt
                     break;
                 }
             }
-
+            // Check with edges 
             for ( int p = 0; p < _node->edges.size(); p++ )
             {
                 DS::LEdge<DS::LGraph<int, double> >* _edge = _node->edges[p];
@@ -123,6 +127,7 @@ namespace qt
                 }
             }
         }
+        // ******************************************************************************************
         update();
     }
 
@@ -144,6 +149,7 @@ namespace qt
 
         _painter.setBrush( m_obstacleBrush );
         _painter.setPen( m_obstaclePen );
+        // Draw grid *******************************
         for ( int x = 0; x < GRID_X ; x++ )
         {
             _painter.drawLine( delta_x * x, 0, delta_x * x, height() );
@@ -153,7 +159,9 @@ namespace qt
         {
             _painter.drawLine( 0, delta_y * y, width(), delta_y * y );
         }
+        // ******************************************
 
+        // Draw nodes and edges *********************
         for ( int q = 0; q < this->graph.nodes.size(); q++ )
         {
             _painter.setBrush( m_nodeBrush );
@@ -183,7 +191,9 @@ namespace qt
                 _painter.drawLine( _p1, _p2 );
             }
         }
+        // ******************************************
 
+        // Draw obstacles ***************************
         _painter.setBrush( m_obstacleBrush );
         _painter.setPen( m_obstaclePen );
 
@@ -199,7 +209,9 @@ namespace qt
         {
             _painter.drawRect( m_obstacles[q] );
         }
+        // ******************************************
 
+        // Draw a path requested using A* search ****
         if ( m_path_node != nullptr )
         {
             _painter.setBrush( m_pathBrush );
@@ -214,11 +226,12 @@ namespace qt
                 _node_parent = _node_parent->parent;
             }
         }
-
+        // ******************************************
         _painter.restore();
         _painter.end();
     }
 
+    // Initialize the nodes randomly in the scene *****
     void GLdrawingArea::initGraphNodes()
     {
         m_path_node = nullptr;
@@ -231,7 +244,9 @@ namespace qt
             this->graph.insertNode( q, _x, _y, q );
         }
     }
+    // ************************************************
 
+    // Initialize the connections using the delaunay triangulation ****************
     void GLdrawingArea::initGraphConnections()
     {
         m_path_node = nullptr;
@@ -269,7 +284,9 @@ namespace qt
         delete _tres;
         delete[] _points;
     }
+    // *******************************************************************************
 
+    // Mouse move event received ****************************
     void GLdrawingArea::mouseMoveEvent( QMouseEvent* ev )
     {
         if ( m_rectTooltip != nullptr )
@@ -281,7 +298,9 @@ namespace qt
             m_rectTooltip->setHeight( OBS_HEIGHT );
         }
     }
+    // *******************************************************
 
+    // Mouse press received when placing an obstacle or selecting nodes ******************
     void GLdrawingArea::mousePressEvent( QMouseEvent* ev )
     {
         if ( m_state == ST_NORMAL )
@@ -334,7 +353,9 @@ namespace qt
             m_state = ST_NORMAL;
         }
     }
+    // ******************************************************************************
 
+    // Callback called when requesting an obstacle **********************************
     void GLdrawingArea::placeObstacle()
     {
         if ( m_state != ST_NORMAL )
@@ -346,9 +367,9 @@ namespace qt
 
         m_rectTooltip = new QRectF( 0, 0, OBS_WIDTH, OBS_HEIGHT );
     }
+    // ******************************************************************************
 
-
-
+    // Callback called when requesting to save the graph in a .txt file ****************************
     void GLdrawingArea::saveGraph( QString pFileName )
     {
         QByteArray _fileName_bytes = pFileName.toLatin1();
@@ -383,7 +404,9 @@ namespace qt
             _fileHandle.close();
         }
     }
+    // ************************************************************************************************
 
+    // Callback called when requesting to open a graph from a .txt file *******************************
     void GLdrawingArea::openGraph( QString pFileName )
     {
         QByteArray _fileName_bytes = pFileName.toLatin1();
@@ -449,9 +472,10 @@ namespace qt
             }
         }
     }
+    // ************************************************************************************************
 
     /**
-     * Calculate path using A* search
+     * Calculate path using A* search *****************************************************************
      */
     void GLdrawingArea::calculatePath()
     {
@@ -542,7 +566,9 @@ namespace qt
             m_path_node = _pathNode;
         }
     }
+    // ************************************************************************************************
 
+    // TODO: Precalc method
     void GLdrawingArea::precalculate()
     {
 

@@ -58,12 +58,15 @@ namespace qt
         DS::LGraph<int, double> graph;
 
         GLdrawingArea( QWidget *parent = nullptr );
+
+        // Callbacks ********************
         void initGraphNodes();
         void initGraphConnections();
         void placeObstacle();
         void saveGraph( QString pFileName );
         void openGraph( QString pFileName );
         void precalculate();
+        // ******************************
 
         void mouseMoveEvent( QMouseEvent* ev ) override;
         void mousePressEvent( QMouseEvent* ev ) override;

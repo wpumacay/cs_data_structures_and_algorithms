@@ -95,24 +95,33 @@ MainWindow::~MainWindow()
 }
 
 
+/**
+* Called to initialize the nodes of the graph
+*/
 void MainWindow::onInitNodes()
 {
-    std::cout << "init nodes" << std::endl;
     m_glDrawingArea->initGraphNodes();
 }
 
+/**
+* Called to initialize the connections of the graph
+*/
 void MainWindow::onInitGraph()
 {
-    std::cout << "init graph" << std::endl;
     m_glDrawingArea->initGraphConnections();
 }
 
+/**
+* Called to place an obstacle in the scene
+*/
 void MainWindow::onPlaceObstacle()
 {
-    std::cout << "place obstacle" << std::endl;
     m_glDrawingArea->placeObstacle();
 }
 
+/**
+* Called to save the current graph into a .txt file
+*/
 void MainWindow::onSave()
 {
     QString _fileName = QFileDialog::getSaveFileName( this,
@@ -122,7 +131,9 @@ void MainWindow::onSave()
     m_glDrawingArea->saveGraph( _fileName );
 }
 
-
+/**
+* Called to open a graph from a .txt file
+*/
 void MainWindow::onOpen()
 {
     QString _fileName = QFileDialog::getOpenFileName( this,
@@ -132,9 +143,12 @@ void MainWindow::onOpen()
     m_glDrawingArea->openGraph( _fileName );
 }
 
-
+/**
+* Called to precalculate and store in a .txt file
+*/
 void MainWindow::onPrecalculate()
 {
+    // TODO: Work in progress
     m_glDrawingArea->precalculate();
 }
 

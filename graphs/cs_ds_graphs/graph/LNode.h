@@ -20,14 +20,14 @@ namespace DS
 		N data;
 		vector<Edge*> edges;
 
-		double x;
-		double y;
+		double x;// X coordinate in the scene
+		double y;// Y coordinate in the scene
 
-        int id;
+        int id;// Unique identifier, the same as index in graph's vector of nodes
 
-        double f,g,h;
+        double f,g,h; // For A* search
 
-        LNode* parent;
+        LNode* parent;// For A* search path reconstruction
 
         LNode( N node_data, double x, double y, int id )
 		{

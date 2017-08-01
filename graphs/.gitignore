@@ -5,4 +5,6 @@
 *.swo
 
 build-cs_ds_graphs-Desktop_Qt_5_9_1_GCC_64bit-Debug
-*.user
+*.pro.user
+*.mp4
+*.zip

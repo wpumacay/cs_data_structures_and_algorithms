@@ -10,52 +10,49 @@ namespace engine
 	namespace gp
 	{
 
-		class LGraphicsObject
+		class LGraphicsObject2D
 		{
 
 			protected :
 
-			GLfloat m_vertices[] = {  0.1f,  0.1f, 0.0f,
-									  0.1f, -0.1f, 0.0f,
-									 -0.1f, -0.1f, 0.0f,
-									 -0.1f,  0.1f, 0.0f };
+			int m_numVertices;
+			int m_numTriangles;
+			GLfloat* m_vertices;
+			GLuint* m_indices;
 
 			GLuint programId;
 			GLuint vbo;
 			GLuint vao;
 			GLuint ebo;
-			
 
 			public :
 
 
 			LPoint xy;
+			float rotation;
+			LPoint scale;
 
-			LGraphicsObject()
+			LGraphicsObject2D()
 			{
+				programId = 0;
 				this->xy.x = 0;
 				this->xy.y = 0;
+				this->rotation = 0.0f;
+				this->scale.x = 1.0f;
+				this->scale.y = 1.0f;
 			}
 
-			LGraphicsObject( double x, double y )
+			LGraphicsObject2D( double x, double y )
 			{
+				programId = 0;
 				this->xy.x = x;
 				this->xy.y = y;
+				this->rotation = 0.0f;
+				this->scale.x = 1.0f;
+				this->scale.y = 1.0f;
 			}
 
-			
-
-			void render()
-			{
-				// Render the object
-				glUseProgram( this->programId );
-
-				glBindVertexArray( this->vao );
-
-				glBindVertexArray( 0 );
-
-				glUseProgram( 0 );
-			}
+			virtual void render() = 0;
 		};
 	}
 

@@ -2,20 +2,15 @@
 
 #include <iostream>
 
-#include "engine/LRenderer.h"
 #define GLEW_STATIC
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include "engine/LSimpleRenderer.h"
-#include "engine/LCircle.h"
-#include "engine/LShaderManager.h"
-
 
 void onKeyEvent( GLFWwindow* pWindow, int pKey, int pScancode, 
 				 int pAction, int pMode );
 
 #define APP_WIDTH 800
-#define APP_HEIGHT 600
+#define APP_HEIGHT 800
 
 
 int main()
@@ -53,19 +48,10 @@ int main()
 	glfwGetFramebufferSize( _window, &_width, &_height );
 	glViewport( 0, 0, _width, _height );
 
-	engine::gp::ShaderManager::create();
-	engine::gp::LSimpleRenderer _renderer;
-
-	GLuint _test_program = engine::gp::ShaderManager::instance->createProgram( "engine/shaders/gp_circle_vertex_shader.glsl",
-																			   "engine/shaders/gp_circle_fragment_shader.glsl" );
-
-	engine::gp::LCircle _circle;
-
 	while ( !glfwWindowShouldClose( _window ) )
 	{
 		glfwPollEvents();
 
-		_renderer.render();
 
 		glfwSwapBuffers( _window );
 	}

@@ -1,6 +1,7 @@
 
 
 #include "LSolver.h"
+#include "gl/LApp.h"
 #include <iostream>
 
 using namespace std;
@@ -131,6 +132,18 @@ namespace engine
             }
             cout << "LSolver> best so far: " << m_bestConfiguration->getContainer().r << endl;
             cout << "LSolver> feasibility: " << m_bestConfiguration->feasibility() << endl;
+
+            cout << "Show-results? yes(1), no(-) : " << endl;
+            int _option;
+            cin >> _option;
+            cout << endl;
+            if ( _option == 1 )
+            {
+                engine::gp::LApp _app;
+                _app.initialize();
+                _app.loop();
+                _app.finalize();
+            }
         }
     }
 

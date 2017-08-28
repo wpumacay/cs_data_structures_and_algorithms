@@ -1,8 +1,9 @@
 
 
-#include "LSolver.h"
-#include "gl/LApp.h"
 #include <iostream>
+#include "LSolver.h"
+//#include "gl/LApp.h"
+
 
 using namespace std;
 
@@ -137,13 +138,19 @@ namespace engine
             int _option;
             cin >> _option;
             cout << endl;
+            /*
             if ( _option == 1 )
             {
-                engine::gp::LApp _app;
+                engine::gl::LApp _app;
                 _app.initialize();
+
+                // Test the app, add some baseObjects
+
+
                 _app.loop();
                 _app.finalize();
             }
+            */
         }
     }
 

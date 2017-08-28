@@ -5,7 +5,8 @@
 #include <iostream>
 #include <GL/glew.h>
 #include "LCommon.h"
-#include "LGraphicsObject.h"
+#include "LScene.h"
+#include "LCommonGL.h"
 
 #define DX 100.0
 #define DY 100.0
@@ -17,7 +18,7 @@
 namespace engine
 {
 
-	namespace gp
+	namespace gl
 	{
 
 		class LSimpleRenderer
@@ -25,9 +26,16 @@ namespace engine
 
 			private :
 
-			std::vector<LGraphicsObject*> m_objs;
+			int appWidth;
+			int appHeight;
 
 			public :
+
+			LSimpleRenderer( int appWidth, int appHeight )
+			{
+				this->appWidth = appWidth;
+				this->appHeight = appHeight;
+			}
 
 
 			LPoint fromXYtoGL( const LPoint& xy )
@@ -35,15 +43,16 @@ namespace engine
 				return LPoint( xy.x / DX, xy.y / DY );
 			}
 
-			void render()
+			void render( LScene* scene )
 			{
 				glClearColor( BG_R, BG_G, BG_B, 1.0f );
 				glClear( GL_COLOR_BUFFER_BIT );
 
-				for ( int q = 0; q < m_objs.size(); q++ )
-				{
-					m_objs[q].render();
-				}
+				LRenderInfo _rInfo;
+				_rInfo.appWidth = this->appWidth;
+				_rInfo.appHeight = this->appHeight;
+
+				scene->render( _rInfo );
 			}
 
 		};

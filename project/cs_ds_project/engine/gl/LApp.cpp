@@ -2,22 +2,35 @@
 #include "LApp.h"
 
 
-
-
 namespace engine
 {
-    namespace gp
+    namespace gl
     {
 
         LApp::LApp()
         {
             m_window = NULL;
             m_initialized = false;
+
+            m_renderer = new LSimpleRenderer( APP_WIDTH, APP_HEIGHT );
+            m_stage = new LScene();
+
+            ShaderManager::create();
         }
 
         LApp::~LApp()
         {
             m_window = NULL;
+            if ( m_stage != NULL )
+            {
+                delete m_stage;
+                m_stage = NULL;
+            }
+            if ( m_renderer != NULL )
+            {
+                delete m_renderer;
+                m_renderer = NULL;
+            }
         }
 
         void LApp::initialize()
@@ -66,7 +79,9 @@ namespace engine
             while ( !glfwWindowShouldClose( m_window ) )
             {
                 glfwPollEvents();
-
+                //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                
+                m_renderer->render( m_stage );
 
                 glfwSwapBuffers( m_window );
             }
@@ -85,11 +100,6 @@ namespace engine
                 glfwSetWindowShouldClose( pWindow, GL_TRUE );
             }
         }
-
-
-
-
-
     }
 }
 

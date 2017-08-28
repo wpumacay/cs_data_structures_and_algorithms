@@ -12,12 +12,15 @@
 #define APP_WIDTH 800
 #define APP_HEIGHT 800
 
+#include "LSimpleRenderer.h"
+#include "LScene.h"
+#include "LShaderManager.h"
 
 namespace engine
 {
 
 
-    namespace gp
+    namespace gl
     {
 
         class LApp
@@ -30,6 +33,9 @@ namespace engine
             int m_width;
             int m_height;
 
+            LSimpleRenderer* m_renderer;
+            LScene* m_stage;
+
             public :
 
             LApp();
@@ -40,6 +46,11 @@ namespace engine
             void loop();
             void finalize();
 
+            LScene* stage()
+            {
+                return m_stage;
+            }
+
             static void onKeyEvent( GLFWwindow* pWindow, int pKey, int pScancode, 
                                     int pAction, int pMode );
         };
@@ -48,5 +59,4 @@ namespace engine
 
 
 }
-
 

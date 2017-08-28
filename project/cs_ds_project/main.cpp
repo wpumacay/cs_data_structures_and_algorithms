@@ -1,7 +1,12 @@
 
 // #define TEST_MATRIX
+#define TEST_GL
 
-#ifndef TEST_MATRIX
+#if defined( TEST_MATRIX ) || defined( TEST_GL )
+#define NO_TEST_APP
+#endif
+
+#ifndef NO_TEST_APP
 
 
     #define APP
@@ -17,14 +22,27 @@
 
     #endif
 
-#include "engine/LSolver.h"
-#include "utils/LConsoleMenu.h"
+    #include "engine/LSolver.h"
+    #include "utils/LConsoleMenu.h"
 
 #else
 
-#include "engine/matrix/LMatrix.h"
+    #ifdef TEST_MATRIX
+
+        #include "engine/matrix/LMatrix.h"
+
+    #elif defined( TEST_GL )
+        #include "engine/gl/LBaseCircle2D.h"
+        #include "engine/gl/LBaseObject2D.h"
+        #include "engine/gl/LApp.h"
+
+    #endif
 
 #endif
+
+#include <iostream>
+
+using namespace std;
 
 int main( int argc, char **argv )
 {
@@ -58,7 +76,7 @@ int main( int argc, char **argv )
 
     #endif
 
-#else
+#elif defined( TEST_MATRIX )
 
     engine::mat::LMatD A = engine::mat::LMat<double>::simple( 2, 2, 
                                                               engine::mat::fill::ONES );
@@ -75,6 +93,25 @@ int main( int argc, char **argv )
     A.print();
     B.print();
     C.print();
+
+#elif defined( TEST_GL )
+
+    cout << "initialized gl" << endl;
+
+    engine::gl::LApp _app;
+    _app.initialize();
+
+    engine::gl::LBaseCircle2D* _obj1 = new engine::gl::LBaseCircle2D( 0.0, 0.0 );
+    engine::gl::LBaseObject2D* _obj2 = new engine::gl::LBaseObject2D( 0.2, 0.2 );
+    _obj2->scale.x = 3;
+    _obj2->scale.y = 3;
+    engine::gl::LScene* _stage = _app.stage();
+    _stage->addObject2D( _obj1 );
+    _stage->addObject2D( _obj2 );
+
+    _app.loop();
+    _app.finalize();
+
 
 #endif
 

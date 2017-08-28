@@ -3,14 +3,16 @@
 
 #include "LCommon.h"
 #include <GL/glew.h>
+#include "LCommonGL.h"
+
 
 namespace engine
 {
 
-	namespace gp
+	namespace gl
 	{
 
-		class LGraphicsObject2D
+		class LGraphicsObject
 		{
 
 			protected :
@@ -20,7 +22,7 @@ namespace engine
 			GLfloat* m_vertices;
 			GLuint* m_indices;
 
-			GLuint programId;
+			GLuint programResIndx;
 			GLuint vbo;
 			GLuint vao;
 			GLuint ebo;
@@ -32,9 +34,9 @@ namespace engine
 			float rotation;
 			LPoint scale;
 
-			LGraphicsObject2D()
+			LGraphicsObject()
 			{
-				programId = 0;
+				programResIndx = 0;
 				this->xy.x = 0;
 				this->xy.y = 0;
 				this->rotation = 0.0f;
@@ -42,9 +44,9 @@ namespace engine
 				this->scale.y = 1.0f;
 			}
 
-			LGraphicsObject2D( double x, double y )
+			LGraphicsObject( double x, double y )
 			{
-				programId = 0;
+				programResIndx = 0;
 				this->xy.x = x;
 				this->xy.y = y;
 				this->rotation = 0.0f;
@@ -52,7 +54,7 @@ namespace engine
 				this->scale.y = 1.0f;
 			}
 
-			virtual void render() = 0;
+			virtual void render( const LRenderInfo& rInfo ) = 0;
 		};
 	}
 

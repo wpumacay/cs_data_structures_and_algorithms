@@ -20,10 +20,7 @@ namespace engine
         {
 
             public :
-
-
-            LPoint xy;
-
+            
             LBaseObject2D() : LGraphicsObject()
             {
                 m_numVertices = 4;

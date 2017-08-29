@@ -1,6 +1,6 @@
 
 // #define TEST_MATRIX
-#define TEST_GL
+// #define TEST_GL
 
 #if defined( TEST_MATRIX ) || defined( TEST_GL )
 #define NO_TEST_APP
@@ -102,12 +102,11 @@ int main( int argc, char **argv )
     _app.initialize();
 
     engine::gl::LBaseCircle2D* _obj1 = new engine::gl::LBaseCircle2D( 0.0, 0.0 );
-    engine::gl::LBaseObject2D* _obj2 = new engine::gl::LBaseObject2D( 0.2, 0.2 );
-    _obj2->scale.x = 3;
-    _obj2->scale.y = 3;
+    _obj1->xy.x = 50;
+    _obj1->xy.y = 50;
+    _obj1->radius = 25;
     engine::gl::LScene* _stage = _app.stage();
     _stage->addObject2D( _obj1 );
-    _stage->addObject2D( _obj2 );
 
     _app.loop();
     _app.finalize();

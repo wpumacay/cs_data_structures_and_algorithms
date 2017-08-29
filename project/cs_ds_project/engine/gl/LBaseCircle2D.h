@@ -1,6 +1,8 @@
 
 #pragma once
 
+#define GLM_ENABLE_EXPERIMENTAL
+
 #include "LGraphicsObject.h"
 #include "LShaderManager.h"
 #include "glm/glm.hpp"
@@ -21,11 +23,12 @@ namespace engine
 
             public :
 
-
-            LPoint xy;
+            float radius;
 
             LBaseCircle2D() : LGraphicsObject()
             {
+                radius = 0.4;
+
                 m_numVertices = 1;
 
                 m_vertices = new GLfloat[ 3 * m_numVertices ];
@@ -75,6 +78,13 @@ namespace engine
 
                 glBindVertexArray( vao );
 
+                // Transform from world to gl
+                LPoint xy_gl;
+                xy_gl.x = ( 1. / rInfo.worldWidth ) * this->xy.x;
+                xy_gl.y = ( 1. / rInfo.worldHeight ) * this->xy.y;
+
+                float radius_gl = ( 1. / rInfo.worldWidth ) * this->radius;
+
                 if ( _programId != 0 )
                 {
                     GLuint u_transform = glGetUniformLocation( _programId, "u_transform" );
@@ -82,13 +92,17 @@ namespace engine
                     glm::mat4 _mat = glm::mat4( 1.0f );
                     _mat = glm::scale( _mat, glm::vec3( this->scale.x, this->scale.y, 1.0f ) );
                     _mat = glm::rotate( _mat, this->rotation, glm::vec3( 0.0f, 0.0f, 1.0f ) );
-                    _mat = glm::translate( _mat, glm::vec3( this->xy.x, this->xy.y, 0.0f ) );
+                    _mat = glm::translate( _mat, glm::vec3( xy_gl.x, xy_gl.y, 0.0f ) );
 
                     //cout << glm::to_string( _mat ) << endl;
 
                     glUniformMatrix4fv( u_transform, 1, GL_FALSE, glm::value_ptr( _mat ) );
+
+                    GLuint u_cRadius = glGetUniformLocation( _programId, "u_cRadius" );
+
+                    glUniform1f( u_cRadius, radius_gl );
                 }
-                glDrawArrays( GL_POINTS, 0, 4 );
+                glDrawArrays( GL_POINTS, 0, 1 );
 
                 glBindVertexArray( 0 );
 

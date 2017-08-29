@@ -1,8 +1,10 @@
 
 
 #include <iostream>
+#include <vector>
 #include "LSolver.h"
-//#include "gl/LApp.h"
+#include "gl/LBaseCircle2D.h"
+#include "gl/LApp.h"
 
 
 using namespace std;
@@ -138,19 +140,34 @@ namespace engine
             int _option;
             cin >> _option;
             cout << endl;
-            /*
+            
             if ( _option == 1 )
             {
                 engine::gl::LApp _app;
                 _app.initialize();
+                engine::gl::LScene* _stage = _app.stage();
 
                 // Test the app, add some baseObjects
 
+                engine::gl::LBaseCircle2D* _cContainer = new engine::gl::LBaseCircle2D();
+                _cContainer->radius = m_configuration->getContainer().r;
+                _stage->addObject2D( _cContainer );
+
+                vector<LCircle> _circles = m_configuration->circles();
+                for ( int q = 0; q < _circles.size(); q++ )
+                {
+                    engine::gl::LBaseCircle2D* _cCircle = new engine::gl::LBaseCircle2D();
+                    _cCircle->xy.x = _circles[q].pos.x;
+                    _cCircle->xy.y = _circles[q].pos.y;
+                    _cCircle->radius = _circles[q].r;
+
+                    _stage->addObject2D( _cCircle );
+                }
 
                 _app.loop();
                 _app.finalize();
             }
-            */
+            
         }
     }
 

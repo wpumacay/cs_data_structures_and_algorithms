@@ -8,8 +8,8 @@
 #include "LScene.h"
 #include "LCommonGL.h"
 
-#define DX 100.0
-#define DY 100.0
+#define DX 200.0
+#define DY 200.0
 
 #define BG_R 0.2f
 #define BG_G 0.3f
@@ -51,6 +51,8 @@ namespace engine
 				LRenderInfo _rInfo;
 				_rInfo.appWidth = this->appWidth;
 				_rInfo.appHeight = this->appHeight;
+				_rInfo.worldWidth = DX;
+				_rInfo.worldHeight = DY;
 
 				scene->render( _rInfo );
 			}

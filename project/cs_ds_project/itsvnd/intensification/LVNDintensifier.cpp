@@ -8,12 +8,13 @@ using namespace std;
 
 #include "cuda_vnd.h"
 
-#endif
-
 extern void computeVND( float cRadius, 
                         CCircle* circles, int numCircles, 
                         CPair* pairs, int numPairs,
                         int *h_bestIndx );
+
+#endif
+
 
 
 namespace intensifiers
@@ -99,8 +100,7 @@ namespace intensifiers
                 delete[] c_pairs;
                 delete[] c_circles;
 
-            #endif
-            //#else
+            #else
 
                 for ( it = _sNeighborhoods.begin(); it != _sNeighborhoods.end(); it++ )
                 {
@@ -147,9 +147,9 @@ namespace intensifiers
                     break;
                 }
                 _iterCount++;
+                #endif
             }
 
-            //#endif
 
             // Continuously optimize the new solution
             m_optimizer->run( pConfiguration );

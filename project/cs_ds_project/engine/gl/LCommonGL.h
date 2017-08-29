@@ -13,6 +13,8 @@ namespace engine
 		{
 			int appWidth;
 			int appHeight;
+            int worldWidth;
+            int worldHeight;
 		};
 		
 	}

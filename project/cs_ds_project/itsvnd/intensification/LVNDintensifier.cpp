@@ -8,10 +8,9 @@ using namespace std;
 
 #include "cuda_vnd.h"
 
-extern void computeVND( float cRadius, 
+extern void computeVND( float& cRadius, 
                         CCircle* circles, int numCircles, 
-                        CPair* pairs, int numPairs,
-                        int *h_bestIndx );
+                        CPair* pairs, int numPairs );
 
 #endif
 
@@ -48,6 +47,8 @@ namespace intensifiers
 
             #ifdef USE_CUDA
 
+                cout << "Parallel-cuda intensifier" << endl;
+
                 SwapNeighborhoods::iterator _it;
                 vector<engine::Pair<int,int>> _pairs;
 
@@ -66,6 +67,8 @@ namespace intensifiers
                 }
 
                 // Prepare the data of the current configuration and the swaps to make
+
+                cout << "Started preparing data" << endl;
 
                 int c_numPairs = _pairs.size();
                 CPair* c_pairs = new CPair[c_numPairs];
@@ -86,15 +89,25 @@ namespace intensifiers
                     c_circles[q].y = _circles[q].pos.y;
                 }
 
-                int _bestIndx = -1;
+                cout << "Finished preparing data" << endl;
 
                 // Launch the kernels to compute the best by calling the helper function
                 // Also, extract the data and get the best one, and compare it with the current one
                 computeVND( c_cRadius, 
                             c_circles, c_numCircles,
-                            c_pairs, c_numPairs, 
-                            &_bestIndx );
+                            c_pairs, c_numPairs );
 
+
+                // Retrieve the results back into the configuration
+
+                pConfiguration->getContainer().r = c_cRadius;
+
+                for ( int q = 0; q < c_numCircles; q++ )
+                {
+                    pConfiguration->getCircleByIndx( q ).r     = c_circles[q].r;
+                    pConfiguration->getCircleByIndx( q ).pos.x = c_circles[q].x;
+                    pConfiguration->getCircleByIndx( q ).pos.y = c_circles[q].y;
+                }
 
                 // clean up
                 delete[] c_pairs;
@@ -147,7 +160,9 @@ namespace intensifiers
                     break;
                 }
                 _iterCount++;
-                #endif
+
+            #endif
+            
             }
 
 

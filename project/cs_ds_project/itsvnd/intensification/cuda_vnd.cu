@@ -9,13 +9,6 @@
 #define K_RANGE_U_FEASIBLE 1
 #define K_R_V 0.25
 
-__global__ void kernel_vnd_test( int c1, int c2 )
-{
-    c1++;
-    c2++;
-    printf( "? %d \n", ( c1 + c2 ) );
-}
-
 __device__ void k_swap_circles( int c1, int c2, int wIndxOff, CCircle* cCirclesExt )
 {
     float _x = cCirclesExt[wIndxOff + c1].x;
@@ -28,8 +21,8 @@ __device__ void k_swap_circles( int c1, int c2, int wIndxOff, CCircle* cCirclesE
     cCirclesExt[wIndxOff + c2].y = _y;
 }
 
-__device__ float k_potential( const CVector &xConf,
-                              const CVector &rConf )
+__device__ float k_potential( CVector &xConf,
+                              CVector &rConf )
 {
     float _res = 0.0f;
 
@@ -46,13 +39,13 @@ __device__ float k_potential( const CVector &xConf,
         _res += _cost_q * _cost_q;
     }
     // Overlap between circles
-    for ( int q = 0; q < cNumCircles; q++ )
+    for ( int q = 0; q < rConf.dim(); q++ )
     {
         float _xi = xConf[ 2 * q + 1 ];
         float _yi = xConf[ 2 * q + 2 ];
         float _ri = rConf[q];
 
-        for ( int p = q + 1; p < cNumCircles; p++ )
+        for ( int p = q + 1; p < rConf.dim(); p++ )
         {
             float _xj = xConf[ 2 * p + 1 ];
             float _yj = xConf[ 2 * p + 2 ];
@@ -70,13 +63,13 @@ __device__ float k_potential( const CVector &xConf,
     return _res;
 }
 
-__device__ CVector k_computeGradient( const CVector &xConf,
-                                      const CVector &rConf )
+__device__ CVector k_computeGradient( CVector &xConf,
+                                      CVector &rConf )
 {
     CVector _grad( xConf.dim() );
     float _step = K_DELTA_STEP;
 
-    float _f = k_potential( wIndxOff, cCirclesExt, cRadius, cNumCircles );
+    float _f = k_potential( xConf, rConf );
 
     for ( int q = 0; q < xConf.dim(); q++ )
     {
@@ -89,8 +82,8 @@ __device__ CVector k_computeGradient( const CVector &xConf,
     return _grad;
 }
 
-__device__ float k_container_potential( const CVector &xConf,
-                                        const CVector &rConf )
+__device__ float k_container_potential( CVector &xConf,
+                                        CVector &rConf )
 {
     float _res = 0.0f;
 
@@ -239,28 +232,38 @@ __global__ void kernel_compute_best_vnd( float cRadius,
 }
 
 
-void computeVND( float cRadius, 
+void computeVND( float& cRadius, 
                  CCircle* circles, int numCircles, 
-                 CPair* pairs, int numPairs,
-                 int *h_bestIndx )
+                 CPair* pairs, int numPairs )
 {
+    printf( "starting computeVND method\n" );
+
     // Reserve space for the current configuration and  ****
     // possible swap moves
+    printf( "Started allocating memory 1\n" );
     CCircle* d_circles;
     CPair* d_pairs;
 
-    cudaMalloc( &d_circles, sizeof( CCircle ) * numCircles );
+    int nBytes1 = sizeof( CCircle ) * numCircles;
+    int nBytes2 = sizeof( CCircle ) * numCircles * numPairs;
+
+    printf( "alloc. %d - %d \n", nBytes1, nBytes2 );
+
+    cudaMalloc( ( void** ) &d_circles, sizeof( CCircle ) * numCircles );
     cudaMemcpy( d_circles, circles, 
                 sizeof( CCircle ) * numCircles, 
                 cudaMemcpyHostToDevice );
 
-    cudaMalloc( &d_pairs, sizeof( CPair ) * numPairs );
+    cudaMalloc( ( void** ) &d_pairs, sizeof( CPair ) * numPairs );
     cudaMemcpy( d_pairs, pairs, 
                 sizeof( CPair ) * numPairs, 
                 cudaMemcpyHostToDevice );
+    printf( "Finished allocating memory 1\n" );
     // *****************************************************
 
     // Create arrays to store the results ***********
+    printf( "Started allocating result arrays\n" );
+
     int* h_bests = new int[numPairs];
     for ( int q = 0; q < numPairs; q++ )
     {
@@ -268,7 +271,7 @@ void computeVND( float cRadius,
     }
 
     int* d_bests;
-    cudaMalloc( &d_bests, sizeof( int ) * numPairs );
+    cudaMalloc( ( void** ) &d_bests, sizeof( int ) * numPairs );
     cudaMemcpy( d_bests, h_bests, sizeof( int ) * numPairs, cudaMemcpyHostToDevice );
 
     float* h_bestsRadius = new float[numPairs];
@@ -278,34 +281,38 @@ void computeVND( float cRadius,
     }
 
     float* d_bestsRadius;
-    cudaMalloc( &d_bestsRadius, sizeof( float ) * numPairs );
+    cudaMalloc( ( void** ) &d_bestsRadius, sizeof( float ) * numPairs );
     cudaMemcpy( d_bestsRadius, h_bestsRadius, sizeof( float ) * numPairs, cudaMemcpyHostToDevice );
 
+    printf( "Finished allocating result arrays\n" );
     // **********************************************
 
-    printf( "starting kernel\n" );
-
     // Create the space neccessary for each thread to work in ****************
+    printf( "started allocating memory 2\n" );
+
     CCircle* h_circlesExt = new CCircle[numCircles * numPairs];
     for ( int q = 0; q < numPairs; q++ )
     {
         for ( int p = 0; p < numCircles; p++ )
         {
-            h_circlesExt[q * numCircles + p] = circles[q];
+            h_circlesExt[q * numCircles + p].r = circles[q].r;
+            h_circlesExt[q * numCircles + p].x = circles[q].x;
+            h_circlesExt[q * numCircles + p].y = circles[q].y;
         }
     }
 
     CCircle* d_circlesExt;
-    cudaMalloc( &d_circlesExt, sizeof( CCircle ) * numCircles * numPairs );
+    cudaMalloc( ( void** ) &d_circlesExt, sizeof( CCircle ) * numCircles * numPairs );
     cudaMemcpy( d_circlesExt, h_circlesExt, sizeof( CCircle ) * numCircles * numPairs, cudaMemcpyHostToDevice );
 
+    printf( "finished allocating memory 2\n" );
     // ***********************************************************************
-
+    printf( "starting kernel\n" );
     kernel_compute_best_vnd<<<1, numPairs>>>( cRadius, 
                                               d_circles, numCircles, 
                                               d_pairs, numPairs, 
                                               d_circlesExt, d_bests, d_bestsRadius );
-
+    printf( "finished kernel\n" );
     // Retrieve the search results ********************
 
     cudaMemcpy( h_bests, d_bests, sizeof( int ) * numPairs, cudaMemcpyDeviceToHost );
@@ -337,13 +344,29 @@ void computeVND( float cRadius,
 
     if ( _bestIndx != -1 )
     {
+        printf( "Better solution found at indx %d \n", _bestIndx );
+        printf( "radius_old: %f \n", cRadius );
+        printf( "radius_new: %f \n", _bestRadius );
+
         // If a better solution was found, use this to ...
         // update the circle configuration
+
+        int wIndxOff = sizeof( CCircle ) * numCircles * _bestIndx;
+
+        cRadius = _bestRadius;
 
         for ( int q = 0; q < numCircles; q++ )
         {
             
-            cCircles[q]
+            circles[q].x = h_circlesExt[wIndxOff + q].x;
+            circles[q].y = h_circlesExt[wIndxOff + q].y;
+            circles[q].r = h_circlesExt[wIndxOff + q].r;
         }
     }
+
+    cudaFree( d_circles );
+    cudaFree( d_pairs );
+    cudaFree( d_bests );
+    cudaFree( d_bestsRadius );
+    cudaFree( d_circlesExt );
 }

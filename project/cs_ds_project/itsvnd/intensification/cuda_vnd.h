@@ -4,13 +4,13 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
-__host__ __device__ struct CPair
+struct CPair
 {
     int c1;
     int c2;
 };
 
-__host__ __device__ struct CCircle
+struct CCircle
 {
     float x;
     float y;
@@ -25,10 +25,9 @@ __host__ __device__ struct CCircle
     }
 };
 
-void computeVND( float cRadius, 
+void computeVND( float& cRadius, 
                  CCircle* circles, int numCircles, 
-                 CPair* pairs, int numPairs,
-                 int *h_bestIndx );
+                 CPair* pairs, int numPairs );
 
 
 class CVector

@@ -106,6 +106,8 @@ namespace intensifiers
                         pConfiguration->getCircleByIndx( q ).pos.x = c_circles[q].x;
                         pConfiguration->getCircleByIndx( q ).pos.y = c_circles[q].y;
                     }
+
+                    cout << "Intensifier> Better solution found: " << c_cRadius << endl;
                 }
 
                 // clean up

@@ -33,8 +33,8 @@ __device__ float k_potential( CVector &xConf,
         float _xi = xConf[ 2 * q + 1 ];
         float _yi = xConf[ 2 * q + 2 ];
         float _ri = rConf[q];
-        double _dist = sqrtf( _xi * _xi + _yi * _yi );
-        double _cost_q = fmaxf( _dist + _ri - _rContainer, 0.0f );
+        float _dist = sqrtf( _xi * _xi + _yi * _yi );
+        float _cost_q = fmaxf( _dist + _ri - _rContainer, 0.0f );
 
         _res += _cost_q * _cost_q;
     }
@@ -94,8 +94,8 @@ __device__ float k_container_potential( CVector &xConf,
         float _xi = xConf[ 2 * q + 1 ];
         float _yi = xConf[ 2 * q + 2 ];
         float _ri = rConf[q];
-        double _dist = sqrtf( _xi * _xi + _yi * _yi );
-        double _cost_q = fmaxf( _dist + _ri - _rContainer, 0.0f );
+        float _dist = sqrtf( _xi * _xi + _yi * _yi );
+        float _cost_q = fmaxf( _dist + _ri - _rContainer, 0.0f );
 
         _res += _cost_q * _cost_q;
     }
@@ -164,7 +164,7 @@ __global__ void kernel_compute_best_vnd( float cRadius,
     int c2 = cPairs[tIndx].c2;
 
     // Make the swap 
-    int wIndxOff =  sizeof( CCircle ) * cNumCircles * tIndx;
+    int wIndxOff =  cNumCircles * tIndx;
     k_swap_circles( c1, c2, wIndxOff, cCirclesExt );
 
     float containerRadius = cRadius;
@@ -283,9 +283,9 @@ bool computeVND( float& cRadius,
     {
         for ( int p = 0; p < numCircles; p++ )
         {
-            h_circlesExt[q * numCircles + p].r = circles[q].r;
-            h_circlesExt[q * numCircles + p].x = circles[q].x;
-            h_circlesExt[q * numCircles + p].y = circles[q].y;
+            h_circlesExt[q * numCircles + p].r = circles[p].r;
+            h_circlesExt[q * numCircles + p].x = circles[p].x;
+            h_circlesExt[q * numCircles + p].y = circles[p].y;
         }
     }
 
@@ -339,7 +339,7 @@ bool computeVND( float& cRadius,
         // If a better solution was found, use this to ...
         // update the circle configuration
 
-        int wIndxOff = sizeof( CCircle ) * numCircles * _bestIndx;
+        int wIndxOff = numCircles * _bestIndx;
 
         cRadius = _bestRadius;
 

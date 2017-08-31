@@ -96,13 +96,16 @@ namespace intensifiers
 
                 // Retrieve the results back into the configuration
 
-                pConfiguration->getContainer().r = c_cRadius;
-
-                for ( int q = 0; q < c_numCircles; q++ )
+                if ( _foundBetter )
                 {
-                    pConfiguration->getCircleByIndx( q ).r     = c_circles[q].r;
-                    pConfiguration->getCircleByIndx( q ).pos.x = c_circles[q].x;
-                    pConfiguration->getCircleByIndx( q ).pos.y = c_circles[q].y;
+                    pConfiguration->getContainer().r = c_cRadius;
+
+                    for ( int q = 0; q < c_numCircles; q++ )
+                    {
+                        pConfiguration->getCircleByIndx( q ).r     = c_circles[q].r;
+                        pConfiguration->getCircleByIndx( q ).pos.x = c_circles[q].x;
+                        pConfiguration->getCircleByIndx( q ).pos.y = c_circles[q].y;
+                    }
                 }
 
                 // clean up

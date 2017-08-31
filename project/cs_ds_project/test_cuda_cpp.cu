@@ -1,35 +1,15 @@
 
-#pragma once
+#define _USE_MATH_DEFINES
+#include <cmath>
+#include <cstdlib>
 
-#include <cuda.h>
-#include <cuda_runtime.h>
+#define RANDOM() ( rand() / ( float )RAND_MAX )
 
-__host__ __device__ struct CPair
-{
-    int c1;
-    int c2;
-};
-
-__host__ __device__ struct CCircle
-{
-    float x;
-    float y;
-    float r;
-    bool isUpdatable;
-
-    CCircle()
-    {
-        x = 0;
-        y = 0;
-        isUpdatable = true;
-    }
-};
-
-void computeVND( float cRadius, 
-                 CCircle* circles, int numCircles, 
-                 CPair* pairs, int numPairs,
-                 int *h_bestIndx );
-
+#define WX 100.0
+#define WY 100.0
+#define WV 2.0
+#define N_PARTICLES 100
+#define PI 3.1415926535
 
 class CVector
 {
@@ -155,5 +135,102 @@ class CVector
         return *this;
     }
 };
+
+
+class CParticle
+{
+
+    public :
+
+    CVector xy;
+    CVector v;
+
+    __host__ __device__ CParticle()
+    {
+        xy = CVector( 2 );
+        v = CVector( 2 );
+    }
+
+    __host__ __device__ CParticle( float x, float y,
+                                   float vx, float vy )
+    {
+        xy = CVector( 2 );
+        xy[0] = x;
+        xy[1] = y;
+
+        v = CVector( 2 );
+        v[0] = vx;
+        v[1] = vy;
+    }
+    
+    __host__ __device__ CParticle( const CParticle& pOther )
+    {
+        xy = pOther.xy;
+        v  = pOther.v;
+    }
+
+    __host__ __device__ CParticle operator= ( const CParticle& pOther )
+    {
+        xy = pOther.xy;
+        v  = pOther.v;
+
+        return *this;
+    }
+
+    __host__ __device__ void step( float dt )
+    {
+        xy = xy + v * dt;
+    }
+    
+};
+
+__global__ void kernel_updateParticles( CParticle* cParticles, int cNumParticles, float dt )
+{
+    int tIndx = threadIdx.x;
+    
+    if ( tIndx >= cNumParticles )
+    {
+        return;
+    }
+
+    cParticles[tIndx].step( dt );
+}
+
+
+int main()
+{
+
+    CParticle* h_particles = new CParticle[N_PARTICLES];
+    for ( int q = 0; q < N_PARTICLES; q++ )
+    {
+        h_particles[q].xy[0] = RANDOM() * WX;
+        h_particles[q].xy[1] = RANDOM() * WY;
+
+        float _ang = RANDOM() * 2 * PI;
+
+        h_particles[q].v[0] = WV * cos( _ang );
+        h_particles[q].v[1] = WV * sin( _ang );
+    }
+
+    CParticle* d_particles;
+    cudaMalloc( ( void** ) &d_particles, sizeof( CParticle ) * N_PARTICLES );
+    cudaMemcpy( d_particles, h_particles, sizeof( CParticle ) * N_PARTICLES, cudaMemcpyHostToDevice );
+
+
+    // Just loop for now
+    float T = 100.0;
+    float dt = 0.01;
+    int nIters = ( int ) ( T / dt );
+    for ( int q = 0; q < nIters; q++ )
+    {
+        kernel_updateParticles<<<1,N_PARTICLES>>>( d_particles, N_PARTICLES, dt );
+    }
+
+    delete[] h_particles;
+    cudaFree( d_particles );
+
+    return 0;
+}
+
 
 

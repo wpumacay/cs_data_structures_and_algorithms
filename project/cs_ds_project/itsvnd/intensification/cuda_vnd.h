@@ -25,7 +25,7 @@ struct CCircle
     }
 };
 
-void computeVND( float& cRadius, 
+bool computeVND( float& cRadius, 
                  CCircle* circles, int numCircles, 
                  CPair* pairs, int numPairs );
 

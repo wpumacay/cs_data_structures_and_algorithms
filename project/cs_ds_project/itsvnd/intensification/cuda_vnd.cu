@@ -175,6 +175,8 @@ __global__ void kernel_compute_best_vnd( float cRadius,
     // Check if touches container too much
     float _cFeasibility = k_computeContainerFeasibility( wIndxOff, cCirclesExt, cRadius, cNumCircles );
 
+    // **********************************************************************************
+
     if ( _cFeasibility < K_RANGE_U_FEASIBLE )
     {
         // binary search
@@ -214,9 +216,6 @@ __global__ void kernel_compute_best_vnd( float cRadius,
         }while( _upBound > _loBound );
     }
 
-
-    // **********************************************************************************
-
     // Check if is better than the current solution
 
     float _best_r = cRadius;
@@ -232,22 +231,15 @@ __global__ void kernel_compute_best_vnd( float cRadius,
 }
 
 
-void computeVND( float& cRadius, 
+bool computeVND( float& cRadius, 
                  CCircle* circles, int numCircles, 
                  CPair* pairs, int numPairs )
 {
-    printf( "starting computeVND method\n" );
 
     // Reserve space for the current configuration and  ****
     // possible swap moves
-    printf( "Started allocating memory 1\n" );
     CCircle* d_circles;
     CPair* d_pairs;
-
-    int nBytes1 = sizeof( CCircle ) * numCircles;
-    int nBytes2 = sizeof( CCircle ) * numCircles * numPairs;
-
-    printf( "alloc. %d - %d \n", nBytes1, nBytes2 );
 
     cudaMalloc( ( void** ) &d_circles, sizeof( CCircle ) * numCircles );
     cudaMemcpy( d_circles, circles, 
@@ -258,11 +250,9 @@ void computeVND( float& cRadius,
     cudaMemcpy( d_pairs, pairs, 
                 sizeof( CPair ) * numPairs, 
                 cudaMemcpyHostToDevice );
-    printf( "Finished allocating memory 1\n" );
     // *****************************************************
 
     // Create arrays to store the results ***********
-    printf( "Started allocating result arrays\n" );
 
     int* h_bests = new int[numPairs];
     for ( int q = 0; q < numPairs; q++ )
@@ -284,11 +274,9 @@ void computeVND( float& cRadius,
     cudaMalloc( ( void** ) &d_bestsRadius, sizeof( float ) * numPairs );
     cudaMemcpy( d_bestsRadius, h_bestsRadius, sizeof( float ) * numPairs, cudaMemcpyHostToDevice );
 
-    printf( "Finished allocating result arrays\n" );
     // **********************************************
 
     // Create the space neccessary for each thread to work in ****************
-    printf( "started allocating memory 2\n" );
 
     CCircle* h_circlesExt = new CCircle[numCircles * numPairs];
     for ( int q = 0; q < numPairs; q++ )
@@ -305,14 +293,13 @@ void computeVND( float& cRadius,
     cudaMalloc( ( void** ) &d_circlesExt, sizeof( CCircle ) * numCircles * numPairs );
     cudaMemcpy( d_circlesExt, h_circlesExt, sizeof( CCircle ) * numCircles * numPairs, cudaMemcpyHostToDevice );
 
-    printf( "finished allocating memory 2\n" );
     // ***********************************************************************
-    printf( "starting kernel\n" );
+    
     kernel_compute_best_vnd<<<1, numPairs>>>( cRadius, 
                                               d_circles, numCircles, 
                                               d_pairs, numPairs, 
                                               d_circlesExt, d_bests, d_bestsRadius );
-    printf( "finished kernel\n" );
+    
     // Retrieve the search results ********************
 
     cudaMemcpy( h_bests, d_bests, sizeof( int ) * numPairs, cudaMemcpyDeviceToHost );
@@ -342,12 +329,13 @@ void computeVND( float& cRadius,
         }
     }
 
+    bool foundBetter = false;
+
     if ( _bestIndx != -1 )
     {
-        printf( "Better solution found at indx %d \n", _bestIndx );
-        printf( "radius_old: %f \n", cRadius );
-        printf( "radius_new: %f \n", _bestRadius );
 
+        printf( "found better \n" );
+        foundBetter = true;
         // If a better solution was found, use this to ...
         // update the circle configuration
 
@@ -369,4 +357,6 @@ void computeVND( float& cRadius,
     cudaFree( d_bests );
     cudaFree( d_bestsRadius );
     cudaFree( d_circlesExt );
+
+    return foundBetter;
 }

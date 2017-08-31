@@ -119,7 +119,7 @@ __device__ float k_computeContainerFeasibility( int wIndxOff, CCircle* cCirclesE
     return k_container_potential( _xConf, _rConf );
 }
 
-__device__ void k_optimize( int wIndxOff, CCircle* cCirclesExt, float& cRadius, int cNumCircles )
+__device__ void k_optimize( int wIndxOff, CCircle* cCirclesExt, float& cRadius, int cNumCircles, bool updaetContainer )
 {
 
     for ( int s = 0; s < K_OPTIMIZER_ITERATIONS; s++ )
@@ -138,7 +138,10 @@ __device__ void k_optimize( int wIndxOff, CCircle* cCirclesExt, float& cRadius, 
         CVector _grad = k_computeGradient( _xConf, _rConf );
         _xConf = _xConf - _grad * K_GRAD_STEP;
 
-        cRadius = _xConf[0];
+        if ( updaetContainer )
+        {
+            cRadius = _xConf[0];
+        }
 
         for ( int q = 0; q < cNumCircles; q++ )
         {
@@ -170,7 +173,7 @@ __global__ void kernel_compute_best_vnd( float cRadius,
     float containerRadius = cRadius;
 
     // Intensify this new configuration *************************************************
-    k_optimize( wIndxOff, cCirclesExt, containerRadius, cNumCircles );
+    k_optimize( wIndxOff, cCirclesExt, containerRadius, cNumCircles, true );
 
     // Check if touches container too much
     float _cFeasibility = k_computeContainerFeasibility( wIndxOff, cCirclesExt, cRadius, cNumCircles );
@@ -206,7 +209,7 @@ __global__ void kernel_compute_best_vnd( float cRadius,
             k = ( _loBound + _upBound ) / 2;
             containerRadius = k * K_R_V;
             float _copyContRadius = containerRadius;
-            k_optimize( wIndxOff, cCirclesExt, _copyContRadius, cNumCircles );
+            k_optimize( wIndxOff, cCirclesExt, _copyContRadius, cNumCircles, false );
 
             if ( _upBound - _loBound <= 1 && k == _loBound )
             {

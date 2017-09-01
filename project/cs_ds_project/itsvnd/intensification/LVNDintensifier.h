@@ -6,7 +6,7 @@
 #include "LBaseIntensifier.h"
 #include <iostream>
 
-#define USE_CUDA 1
+//#define USE_CUDA 1
 
 namespace intensifiers
 {

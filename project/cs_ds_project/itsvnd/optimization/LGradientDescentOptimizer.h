@@ -67,7 +67,7 @@ namespace optimizers
             int k = pConfiguration->getContainer().r / R_V;
             int _upBound = k - 1;
             int _loBound = 0;
-            double _sum;
+            double _sum = 0.0;
             for ( int q = 0; q < pConfiguration->size; q++ )
             {
                 double _frac = pConfiguration->getCircleByIndx( q ).r / R_V;
@@ -131,7 +131,7 @@ namespace optimizers
             int k = pConfiguration->getContainer().r / R_V;
             int _upBound = k - 1;
             int _loBound = 0;
-            double _sum;
+            double _sum = 0.0;
             for ( int q = 0; q < pConfiguration->size; q++ )
             {
                 double _frac = pConfiguration->getCircleByIndx( q ).r / R_V;

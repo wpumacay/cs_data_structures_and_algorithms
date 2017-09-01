@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-#define K_OPTIMIZER_ITERATIONS 100
+#define K_OPTIMIZER_ITERATIONS 20
 #define K_GRAD_STEP 0.1f
 #define K_DELTA_STEP 0.01f
 #define K_RANGE_U_FEASIBLE 1
@@ -208,7 +208,7 @@ __global__ void kernel_compute_best_vnd( float cRadius,
             }
             k = ( _loBound + _upBound ) / 2;
             containerRadius = k * K_R_V;
-            k_optimize( wIndxOff, cCirclesExt, containerRadius, cNumCircles, false );
+            k_optimize( wIndxOff, cCirclesExt, containerRadius, cNumCircles, true );
 
             if ( _upBound - _loBound <= 1 && k == _loBound )
             {

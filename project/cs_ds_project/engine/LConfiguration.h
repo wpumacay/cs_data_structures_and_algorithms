@@ -15,7 +15,7 @@
 
 using namespace std; 
 
-#define RANGE_U_FEASIBLE 1
+#define RANGE_U_FEASIBLE 0.01
 
 namespace engine
 {

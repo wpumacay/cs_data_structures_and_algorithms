@@ -18,7 +18,21 @@
 
 #define OPTIMIZATION_ITERATIONS 20
 
+
+#define USE_LOGGER 1
+
+#ifdef USE_LOGGER
+
+#include "../utils/LLogger.h"
+#include <string>
+
+#define SOLVER_ITERATIONS MAX_ITERATIONS
+
+#else
+
 #define SOLVER_ITERATIONS 100
+
+#endif
 
 namespace engine
 {
@@ -60,6 +74,11 @@ namespace engine
 
         diversifiers::LBaseDiversifier* m_diversifier;
 
+        #ifdef USE_LOGGER
+
+        LLogger m_logger;
+
+        #endif
 
         LSolver( options::optimizer::_optimizer pOptimizer,
                  options::intensifier::_intensifier pIntensifier );

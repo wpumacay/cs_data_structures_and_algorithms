@@ -6,7 +6,6 @@
 #include "gl/LBaseCircle2D.h"
 #include "gl/LApp.h"
 
-
 using namespace std;
 
 engine::LSolver* engine::LSolver::instance = nullptr;
@@ -89,6 +88,22 @@ namespace engine
         {
             reinterpret_cast<intensifiers::LTS_VNDintensifier*>( m_intensifier )->setTabuIterations( 10 * pInstanceSize );
         }
+#ifdef USE_LOGGER
+        if ( m_intensifierId == options::intensifier::TS )
+        {
+            m_logger.reset( string( "TS" ), m_configuration->size );
+        }
+        else if ( m_intensifierId == options::intensifier::VND )
+        {
+            m_logger.reset( string( "VND" ), m_configuration->size );
+        }
+        else
+        {
+            m_logger.reset( string( "TSVND" ), m_configuration->size );
+        }
+        m_logger.onStartLog();
+#endif
+
     }
 
     LSolver::~LSolver()
@@ -136,6 +151,8 @@ namespace engine
             cout << "LSolver> best so far: " << m_bestConfiguration->getContainer().r << endl;
             cout << "LSolver> feasibility: " << m_bestConfiguration->feasibility() << endl;
 
+            #ifndef USE_LOGGER
+
             cout << "Show-results? yes(1), no(-) : " << endl;
             int _option;
             cin >> _option;
@@ -167,6 +184,12 @@ namespace engine
                 _app.loop();
                 _app.finalize();
             }
+
+            #else
+
+            m_logger.log( m_configuration->getContainer().r );
+
+            #endif
             
         }
     }

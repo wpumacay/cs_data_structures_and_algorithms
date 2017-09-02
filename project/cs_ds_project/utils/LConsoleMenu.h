@@ -10,6 +10,8 @@
 
 using namespace std;
 
+#define MIN_N 26
+#define MAX_N 50
 
 class LConsoleMenu
 {
@@ -63,9 +65,11 @@ public :
 		{
 
 			case 1 : 
-
+#ifndef USE_LOGGER
 			showTestMenu();
-
+#else
+			testLogging();
+#endif
 			break;
 
 			default :
@@ -252,6 +256,53 @@ public :
 		engine::LSolver::instance->solve();
 
 		showTestMenu();
+	}
+
+	void testLogging()
+	{
+		// Logging VND alone
+
+		cout << "started logging: " << endl;
+		cout << "nMin: " << MIN_N << endl;
+		cout << "nMax: " << MAX_N << endl;
+		cout << "nIters: " << MAX_ITERATIONS << endl;
+
+		for ( int q = MIN_N; q <= MAX_N; q++ )
+		{
+			engine::LSolver::instance->reset( engine::options::optimizer::BS_GRADIENT_DESCENT,
+											  engine::options::intensifier::VND );
+			engine::LSolver::instance->init( engine::circleInstance::INST_r_i,
+											 q );
+			cout << "starting vnd " << q << endl;
+			engine::LSolver::instance->solve();
+			cout << "finished vnd " << q << endl;
+		}
+
+		// Logging TS alone
+
+		for ( int q = MIN_N; q <= MAX_N; q++ )
+		{
+			engine::LSolver::instance->reset( engine::options::optimizer::BS_GRADIENT_DESCENT,
+											  engine::options::intensifier::TS );
+			engine::LSolver::instance->init( engine::circleInstance::INST_r_i,
+											 q );
+			cout << "starting ts " << q << endl;
+			engine::LSolver::instance->solve();
+			cout << "finished ts " << q << endl;
+		}
+
+		// Logging TS-VND
+
+		for ( int q = MIN_N; q <= MAX_N; q++ )
+		{
+			engine::LSolver::instance->reset( engine::options::optimizer::BS_GRADIENT_DESCENT,
+											  engine::options::intensifier::TS_VND );
+			engine::LSolver::instance->init( engine::circleInstance::INST_r_i,
+											 q );
+			cout << "starting tsvnd " << q << endl;
+			engine::LSolver::instance->solve();
+			cout << "finished tsvnd " << q << endl;
+		}
 	}
 };
 

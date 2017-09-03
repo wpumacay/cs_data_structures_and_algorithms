@@ -10,8 +10,8 @@
 
 using namespace std;
 
-#define MIN_N 26
-#define MAX_N 50
+#define MIN_N 32
+#define MAX_N 35
 
 class LConsoleMenu
 {
@@ -265,31 +265,7 @@ public :
 		cout << "started logging: " << endl;
 		cout << "nMin: " << MIN_N << endl;
 		cout << "nMax: " << MAX_N << endl;
-		cout << "nIters: " << MAX_ITERATIONS << endl;
-
-		for ( int q = MIN_N; q <= MAX_N; q++ )
-		{
-			engine::LSolver::instance->reset( engine::options::optimizer::BS_GRADIENT_DESCENT,
-											  engine::options::intensifier::VND );
-			engine::LSolver::instance->init( engine::circleInstance::INST_r_i,
-											 q );
-			cout << "starting vnd " << q << endl;
-			engine::LSolver::instance->solve();
-			cout << "finished vnd " << q << endl;
-		}
-
-		// Logging TS alone
-
-		for ( int q = MIN_N; q <= MAX_N; q++ )
-		{
-			engine::LSolver::instance->reset( engine::options::optimizer::BS_GRADIENT_DESCENT,
-											  engine::options::intensifier::TS );
-			engine::LSolver::instance->init( engine::circleInstance::INST_r_i,
-											 q );
-			cout << "starting ts " << q << endl;
-			engine::LSolver::instance->solve();
-			cout << "finished ts " << q << endl;
-		}
+		cout << "nIters: " << SOLVER_ITERATIONS << endl;
 
 		// Logging TS-VND
 

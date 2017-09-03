@@ -34,7 +34,7 @@ typedef double ( *PotFunction )( engine::mat::LMatD, engine::mat::LMatD );
 #define ITERS_TEST 5000
 #define GRAD_STEP 0.1f
 #define R_V 0.25
-#define OPTIMIZER_ITERATIONS 100
+#define OPTIMIZER_ITERATIONS 10
 
 namespace optimizers
 {

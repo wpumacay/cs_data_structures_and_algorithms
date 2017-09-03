@@ -167,10 +167,10 @@ namespace engine
                 // Test the app, add some baseObjects
 
                 engine::gl::LBaseCircle2D* _cContainer = new engine::gl::LBaseCircle2D();
-                _cContainer->radius = m_configuration->getContainer().r;
+                _cContainer->radius = m_bestConfiguration->getContainer().r;
                 _stage->addObject2D( _cContainer );
 
-                vector<LCircle> _circles = m_configuration->circles();
+                vector<LCircle> _circles = m_bestConfiguration->circles();
                 for ( int q = 0; q < _circles.size(); q++ )
                 {
                     engine::gl::LBaseCircle2D* _cCircle = new engine::gl::LBaseCircle2D();
@@ -187,7 +187,7 @@ namespace engine
 
             #else
 
-            m_logger.log( m_configuration->getContainer().r );
+            m_logger.log( m_bestConfiguration->getContainer().r );
 
             #endif
             

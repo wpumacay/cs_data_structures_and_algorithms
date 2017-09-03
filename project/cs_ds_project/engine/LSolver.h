@@ -19,7 +19,7 @@
 #define OPTIMIZATION_ITERATIONS 20
 
 
-#define USE_LOGGER 1
+// #define USE_LOGGER 1
 
 #ifdef USE_LOGGER
 

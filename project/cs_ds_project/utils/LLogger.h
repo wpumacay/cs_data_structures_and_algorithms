@@ -8,7 +8,7 @@
 
 using namespace std;
 
-#define MAX_ITERATIONS 10
+#define MAX_ITERATIONS 5
 
 class LLogger
 {

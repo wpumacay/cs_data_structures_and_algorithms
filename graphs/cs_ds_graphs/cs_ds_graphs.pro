@@ -35,6 +35,7 @@ HEADERS += \
         graph/LEdge.h \
         graph/LNode.h \
         graph/LGraph.h \
-        lib/delaunay.h
+        lib/delaunay.h \
+        common.h
 FORMS += \
         mainwindow.ui

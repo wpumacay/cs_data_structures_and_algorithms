@@ -1,6 +1,8 @@
 #ifndef GLDRAWINGAREA_H
 #define GLDRAWINGAREA_H
 
+#include "common.h"
+
 #include <QOpenGLWidget>
 #include "graph/LGraph.h"
 #include "graph/LNode.h"

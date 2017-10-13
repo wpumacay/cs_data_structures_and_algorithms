@@ -16,8 +16,6 @@
 #include "lib/delaunay.h"
 
 // *********************************************************
-// NUMBER OF RANDOM NODES IN THE GRAPH
-#define GRAPH_NODES 100
 // PARAMETER FOR THE COLLISION DETECTION OF OBSTACLE-EDGE
 #define DELTA 10
 // OBSTACLE DIMENSIONS
@@ -26,11 +24,8 @@
 // GRID SIZE
 #define GRID_X 10
 #define GRID_Y 10
-// PARAMETER FOR THE COLLISION DETECTION WITH A NODE
-#define RANGE_PICK 5.0
 // *********************************************************
 
-#define RANDOM() ( rand() / ( float )RAND_MAX )
 
 using namespace std;
 
@@ -175,9 +170,10 @@ namespace qt
                 _painter.setBrush( m_obstacleBrush );
                 _painter.setPen( m_obstaclePen );
             }
-            _painter.drawEllipse( _pos, 5, 5 );
+            _painter.drawEllipse( _pos, QT_GRAPH_NODE_SIZE, QT_GRAPH_NODE_SIZE );
+        #ifdef QT_DRAW_TEXT
             _painter.drawText( QPointF( _pos.x() + 2.5, _pos.y() + 2.5 ), QString::number( _node->id ) );
-
+        #endif
             _painter.setBrush( m_edgeBrush );
             _painter.setPen( m_edgePen );
             for ( int p = 0; p < _node->edges.size(); p++ )
@@ -237,7 +233,7 @@ namespace qt
         m_path_node = nullptr;
         this->graph = DS::LGraph<int, double>();
 
-        for ( int q = 0; q < GRAPH_NODES; q++ )
+        for ( int q = 0; q < NUM_GRAPH_NODES; q++ )
         {
             double _x = RANDOM() * width();
             double _y = RANDOM() * height();

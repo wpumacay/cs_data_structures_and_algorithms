@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <iostream>
@@ -27,8 +26,8 @@ namespace DS
 
 		vector<Node*> nodes;
 
-        void insertNode( N node_data, double x, double y, int id );
-		void insertEdge( Node* from, Node* to, E edge_data );
+        Node* insertNode( N node_data, double x, double y, int id );
+		vector<Edge*> insertEdge( Node* from, Node* to, E edge_data );
 		void removeEdge( Edge* edge );
 		void removeNode( Node* node );
 
@@ -37,16 +36,20 @@ namespace DS
 	};
 
 	template<class N, class E>
-    void LGraph<N,E>::insertNode( N node_data, double x, double y, int id )
+    LNode< LGraph<N,E> >* LGraph<N,E>::insertNode( N node_data, double x, double y, int id )
 	{
-        nodes.push_back( new LNode<LGraph<N,E> >( node_data, x, y, id ) );
+		LNode< LGraph<N,E> >* _pNode = new LNode<LGraph<N,E> >( node_data, x, y, id );
+        nodes.push_back( _pNode );
+        return _pNode;
 	}
 
 	template<class N, class E>
-	void LGraph<N,E>::insertEdge( LNode<LGraph<N,E> >* from,
-								  LNode<LGraph<N,E> >* to,
-								  E edge_data )
+	vector<LEdge< LGraph<N,E> >*> LGraph<N,E>::insertEdge( LNode<LGraph<N,E> >* from,
+								         				   LNode<LGraph<N,E> >* to,
+								  		        		   E edge_data )
 	{
+		vector<LEdge< LGraph<N,E> >*> _res;
+
         // Check if already has this edge
         for ( int q = 0; q < from->edges.size(); q++ )
         {
@@ -54,7 +57,7 @@ namespace DS
             if ( _edge->nodes[1] == to )
             {
                 // Already there
-                return;
+                return _res;
             }
         }
 
@@ -63,11 +66,18 @@ namespace DS
 		_edge_from->nodes[0] = from;
 		_edge_from->nodes[1] = to;
 		from->edges.push_back( _edge_from );
+		_edge_from->drawable = true;
 
 		LEdge<LGraph<N,E> >* _edge_to = new LEdge<LGraph<N,E> >( edge_data );
 		_edge_to->nodes[0] = to;
 		_edge_to->nodes[1] = from;
 		to->edges.push_back( _edge_to );
+		_edge_to->drawable = false;
+
+		_res.push_back( _edge_from );
+		_res.push_back( _edge_to );
+
+		return _res;
 	}
 
 	template<class N, class E>

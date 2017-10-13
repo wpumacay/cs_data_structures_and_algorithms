@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include "LGraph.h"
@@ -17,9 +16,14 @@ namespace DS
 		E data;
 		Node* nodes[2];
 
+		int glIndx;
+		bool drawable;
+
 		LEdge( E edge_data )
 		{
 			data = edge_data;
+			glIndx = -1;
+			drawable = false;
 		}
 	};
 	

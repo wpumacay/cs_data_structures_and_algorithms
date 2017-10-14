@@ -9,6 +9,9 @@ using namespace std;
 
 #define POINT_SIZE 0.010f
 
+#define MIN_SIDES 3
+#define MAX_SIDES 20
+
 namespace engine
 {
 
@@ -49,8 +52,10 @@ namespace engine
 			{
 				//cout << "rendering" << endl;
 				GLuint u_cRadius = glGetUniformLocation( programId, "u_cRadius" );
+				GLuint u_cSides = glGetUniformLocation( programId, "u_cSides" );
 
 				glUniform1f( u_cRadius, POINT_SIZE );
+				glUniform1i( u_cSides, MAX_SIDES );
 
 				glDrawArrays( GL_POINTS, 0, m_numVertices );
 			}

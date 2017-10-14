@@ -4,19 +4,19 @@ layout(points) in;
 layout(triangle_strip, max_vertices = 61) out;
 
 uniform float u_cRadius;
+uniform int u_cSides;
 
 const float PI = 3.1415926;
 
 void main()
 {
 
-    for ( int i = 0; i <= 20; i++ ) 
+    for ( int i = 0; i <= u_cSides; i++ ) 
     {
         // Angle between each side in radians
-        float _ang_1 = PI * 2.0 / 20.0 * i;
-        float _ang_2 = PI * 2.0 / 20.0 * ( i + 1 );
+        float _ang_1 = PI * 2.0 / u_cSides * i;
+        float _ang_2 = PI * 2.0 / u_cSides * ( i + 1 );
 
-        // Offset from center of point (0.3 to accomodate for aspect ratio)
         vec4 _offset_1 = vec4( cos( _ang_1 ) * u_cRadius, 
                                -sin( _ang_1 ) * u_cRadius,
                                0.0, 0.0 );

@@ -61,6 +61,11 @@ namespace engine
 
             bool isDrawable( const LRenderInfo& rInfo ) override
             {
+            	if ( !this->visible )
+            	{
+            		return false;
+            	}
+
             	bool _p1 = true;
             	bool _p2 = true;
 

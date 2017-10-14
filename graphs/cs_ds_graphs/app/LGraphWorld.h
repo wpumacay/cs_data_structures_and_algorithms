@@ -10,6 +10,8 @@
 #include "../lib/delaunay.h"
 
 #include <iostream>
+#include <fstream>
+#include <string>
 #include <cmath>
 #include <vector>
 #include <map>
@@ -49,6 +51,32 @@ namespace app
             DS::LGraph<int, double> m_graph;
             LPathInfo m_pInfo;
 
+            vector<string> split( const string &txt )
+            {
+                vector<string> _res;
+                
+                int pos = txt.find( ',' );
+                if ( pos == std::string::npos )
+                {
+                    _res.push_back( txt );
+                    return _res;
+                }
+
+                int initpos = 0;
+
+                while ( pos != std::string::npos )
+                {
+                    _res.push_back( txt.substr( initpos, pos - initpos + 1 ) );
+                    initpos = pos + 1;
+
+                    pos = txt.find( ',', initpos );
+                }
+
+                _res.push_back( txt.substr( initpos, std::min( pos, (int) txt.size() ) - initpos + 1 ) );
+                
+                return _res;
+            }
+
             public :
 
             LGraphWorld( float wWidth, float wHeight,
@@ -57,7 +85,11 @@ namespace app
                                                                    appWidth, appHeight,
                                                                    pix2world )
             {
+            #ifdef USE_SAVED_GRAPH
+                loadGraph();
+            #else
                 initRandomGraph();
+            #endif
 
                 m_pInfo.start_glIndx = gl::LPrimitivesRenderer2D::instance->addPoint( 1000000.0f, 1000000.0f, 1.0f, 0.0f, 0.0f );
                 m_pInfo.end_glIndx = gl::LPrimitivesRenderer2D::instance->addPoint( 1000000.0f, 1000000.0f, 1.0f, 0.0f, 0.0f );
@@ -129,12 +161,93 @@ namespace app
 
             void saveGraph()
             {
+                cout << "saving graph" << endl;
 
+                ofstream _fileHandle ( "graph_test.txt" );
+                if ( _fileHandle.is_open() )
+                {
+                    _fileHandle << m_graph.nodes.size() << endl;
+
+                    for ( int q = 0; q < m_graph.nodes.size(); q++ )
+                    {
+                        DS::LNode<DS::LGraph<int,double>>* _node = m_graph.nodes[q];
+                        double _x = _node->x;
+                        double _y = _node->y;
+                        int _id = _node->id;
+
+                        _fileHandle << _id << "," << _x << "," << _y << endl;
+                    }
+
+                    for ( int q = 0; q < m_graph.nodes.size(); q++ )
+                    {
+                        DS::LNode<DS::LGraph<int,double>>* _node = m_graph.nodes[q];
+                        for ( int p = 0; p < _node->edges.size(); p++ )
+                        {
+                            DS::LEdge<DS::LGraph<int,double>>* _edge = _node->edges[p];
+                            _fileHandle << _edge->nodes[0]->id << "," << _edge->nodes[1]->id << endl;
+                        }
+                    }
+
+                    _fileHandle.close();
+                }
+
+                cout << "done" << endl;
             }
 
             void loadGraph()
             {
+                cout << "loading graph" << endl;
 
+                ifstream _fileHandle ( "graph_test.txt" );
+                if ( _fileHandle.is_open() )
+                {
+                    string _line;
+
+                    getline( _fileHandle, _line );
+
+                    int N = stoi( _line );
+                    for ( int q = 0; q < N; q++ )
+                    {
+                        getline( _fileHandle, _line );
+
+                        vector<string> _nodeStr = split( _line );
+                        int _id = stoi( _nodeStr[0] );
+                        float _x = stof( _nodeStr[1] );
+                        float _y = stof( _nodeStr[2] );
+
+                        DS::LNode<DS::LGraph<int, double> >* _pNode = m_graph.insertNode( _id, _x, _y, _id );
+
+                        _pNode->glIndx = gl::LPrimitivesRenderer2D::instance->addPoint( _x, _y );
+                    }
+
+                    for( string _edgeLine; getline( _fileHandle, _edgeLine ); )
+                    {
+                        vector<string> _edgeStr = split( _edgeLine );
+                        int _id_from = stoi( _edgeStr[0] );
+                        int _id_to   = stoi( _edgeStr[1] );
+
+                        DS::LNode<DS::LGraph<int, double> >* _pNodeFrom = m_graph.nodes[_id_from];
+                        DS::LNode<DS::LGraph<int, double> >* _pNodeTo   = m_graph.nodes[_id_to];
+
+                        float _dx   = _pNodeFrom->x - _pNodeTo->x;
+                        float _dy   = _pNodeFrom->y - _pNodeTo->y;
+                        float _dist = sqrt( _dx * _dx + _dy * _dy );
+
+                        vector<DS::LEdge<DS::LGraph<int, double> >*> _pEdges = m_graph.insertEdge( _pNodeFrom,
+                                                                                                   _pNodeTo,
+                                                                                                   _dist );
+                        if ( _pEdges.size() != 0 )
+                        {
+                            _pEdges[0]->glIndx = gl::LPrimitivesRenderer2D::instance->addLine( _pNodeFrom->x, _pNodeFrom->y, 
+                                                                                               _pNodeTo->x, _pNodeTo->y );
+                            _pEdges[1]->glIndx = _pEdges[0]->glIndx;
+                        }
+                    }
+
+                    _fileHandle.close();
+                }
+
+                cout << "done" << endl;
             }
 
             void calculatePath()
@@ -318,6 +431,11 @@ namespace app
                 else if ( pKey == GLFW_KEY_A )
                 {
                     m_camera->setVx( CAM_SPEED_X );
+                }
+
+                if ( pKey == GLFW_KEY_SPACE )
+                {
+                    saveGraph();
                 }
             }
 

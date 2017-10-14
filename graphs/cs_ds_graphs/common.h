@@ -24,6 +24,9 @@
 // PARAMETER FOR THE COLLISION DETECTION WITH A NODE
 #define RANGE_PICK 15.0f
 
+#define USE_LIGHT_MODE_ONLY 1
+#define USE_SAVED_GRAPH 1
+
 
 // Some other useful stuff
 #define RANDOM() ( rand() / ( float )RAND_MAX )

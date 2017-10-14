@@ -77,6 +77,11 @@ namespace engine
 
             virtual bool isDrawable( const LRenderInfo& rInfo )
             {
+                if ( !this->visible )
+                {
+                    return false;
+                }
+
                 float _adx = abs( this->xy.x + rInfo.cameraX );
                 float _ady = abs( this->xy.y + rInfo.cameraY );
 

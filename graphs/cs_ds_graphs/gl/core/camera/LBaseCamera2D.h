@@ -114,6 +114,7 @@ namespace engine
 
 			void setZoom( float pZoom )
 			{
+				cout << "zoom: " << pZoom << endl;
 				m_zoom = pZoom;
 				resize();
 			}

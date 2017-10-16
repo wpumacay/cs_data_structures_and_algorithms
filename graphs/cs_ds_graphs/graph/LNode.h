@@ -30,7 +30,12 @@ namespace DS
         double f,g,h; // For A* search
 
         LNode* parent;// For A* search path reconstruction
-       	pair<LNode*,Edge*> parentInfo;
+
+        #ifdef USE_PARALLEL_REQUESTS
+       		pair<LNode*,Edge*> parentInfo[MAX_PARALLEL_REQUESTS];
+       	#else
+       		pair<LNode*,Edge*> parentInfo;
+       	#endif
 
         LNode( N node_data, double x, double y, int id )
 		{
@@ -43,8 +48,16 @@ namespace DS
             this->g = 0;
             this->h = 0;
             this->parent = NULL;
+        #ifdef USE_PARALLEL_REQUESTS
+       		for ( int q = 0; q < MAX_PARALLEL_REQUESTS; q++ )
+       		{
+       			this->parentInfo[q].first = NULL;
+       			this->parentInfo[q].second = NULL;
+       		}
+        #else
            	this->parentInfo.first = NULL;
            	this->parentInfo.second = NULL;
+        #endif
 		}
 	};
 	

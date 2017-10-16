@@ -58,7 +58,7 @@ namespace engine
 
             }
 
-            void init()
+            virtual void init()
             {
                 initGeometry();
                 glGenBuffers( 1, &vbo );

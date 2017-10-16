@@ -24,6 +24,9 @@ namespace engine
 			float* m_py2Buff;
 			int m_nLines;
 
+			GLuint vbo_colors;
+			GLfloat* m_colors;
+
 			public :
 
 			LPrimitiveLineSwarm() : LPrimitive()
@@ -42,12 +45,52 @@ namespace engine
 				m_px2Buff = p2x;
 				m_py2Buff = p2y;
 				m_nLines = nLines;
+				m_numVertices = 2 * m_nLines;
+
+				m_colors = new GLfloat[ 3 * m_numVertices ];
+
+				for ( int q = 0; q < m_nLines; q++ )
+				{
+					m_colors[ 6 * q + 0 ] = 1.0f;
+					m_colors[ 6 * q + 1 ] = 1.0f;
+					m_colors[ 6 * q + 2 ] = 1.0f;
+					m_colors[ 6 * q + 3 ] = 1.0f;
+					m_colors[ 6 * q + 4 ] = 1.0f;
+					m_colors[ 6 * q + 5 ] = 1.0f;
+				}
+			}
+
+			void init() override
+			{
+				cout << "init special xD" << endl;
+
+                initGeometry();
+                glGenBuffers( 1, &vbo );
+                glGenBuffers( 1, &vbo_colors );
+
+                glGenVertexArrays( 1, &vao );
+                glBindVertexArray( vao );
+
+                glBindBuffer( GL_ARRAY_BUFFER, vbo );
+                glBufferData( GL_ARRAY_BUFFER, 
+                              sizeof( GLfloat ) * 3 * m_numVertices,
+                              m_vertices, GL_STATIC_DRAW );
+                glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, ( void* ) 0 );
+                glEnableVertexAttribArray( 0 );
+
+               	glBindBuffer( GL_ARRAY_BUFFER, vbo_colors );
+               	glBufferData( GL_ARRAY_BUFFER,
+               				  sizeof( GLfloat ) * 3 * m_numVertices,
+               				  m_colors, GL_DYNAMIC_DRAW );
+               	glVertexAttribPointer( 1, 3, GL_FLOAT, GL_FALSE, 0, ( void* ) 0 );
+               	glEnableVertexAttribArray( 1 );
+
+                glBindVertexArray( 0 );
 			}
 
 			void initGeometry() override
 			{
 
-				m_numVertices = 2 * m_nLines;
 				m_vertices = new GLfloat[ 3 * m_numVertices ];
 				for ( int q = 0; q < m_nLines; q++ )
 				{
@@ -65,6 +108,16 @@ namespace engine
 				cout << "nvertices: " << m_numVertices << endl;
 			}
 
+			void updateLineColor( int indx, float r, float g, float b )
+			{
+				m_colors[6 * indx + 0] = r;
+				m_colors[6 * indx + 1] = g;
+				m_colors[6 * indx + 2] = b;
+				m_colors[6 * indx + 3] = r;
+				m_colors[6 * indx + 4] = g;
+				m_colors[6 * indx + 5] = b;
+			}
+
             bool isDrawable( const LRenderInfo& rInfo ) override
             {
                 return true;
@@ -73,6 +126,10 @@ namespace engine
 
 			void drawGeometry( const LRenderInfo& rInfo, GLuint programId ) override
 			{
+               	glBindBuffer( GL_ARRAY_BUFFER, vbo_colors );
+               	glBufferData( GL_ARRAY_BUFFER,
+               				  sizeof( GLfloat ) * 3 * m_numVertices,
+               				  m_colors, GL_DYNAMIC_DRAW );
 				glDrawArrays( GL_LINES, 0, 2 * m_nLines );
 			}
 

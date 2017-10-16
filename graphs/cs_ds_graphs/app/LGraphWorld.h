@@ -51,6 +51,11 @@ namespace app
             DS::LGraph<int, double> m_graph;
             LPathInfo m_pInfo;
 
+        #ifdef USE_PARALLEL_REQUESTS
+
+
+        #endif
+
             vector<string> split( const string &txt )
             {
                 vector<string> _res;
@@ -174,6 +179,9 @@ namespace app
                             _p2x.push_back( _pEdges[0]->nodes[1]->x );
                             _p2y.push_back( _pEdges[0]->nodes[1]->y );
 
+                            _pEdges[0]->glIndx = _nlines - 1;
+                            _pEdges[1]->glIndx = _nlines - 1;
+
                         #else
                             _pEdges[0]->glIndx = gl::LPrimitivesRenderer2D::instance->addLine( _pEdges[0]->nodes[0]->x, _pEdges[0]->nodes[0]->y, 
                                                                                                _pEdges[0]->nodes[1]->x, _pEdges[0]->nodes[1]->y );
@@ -247,6 +255,20 @@ namespace app
                     vector<string> _params = split( _line );
                     int N = stoi( _params[1] );
 
+                #ifdef USE_BATCH_RENDER
+
+                    float* _px = new float[N];
+                    float* _py = new float[N];
+
+                    vector<float> _p1x;
+                    vector<float> _p1y;
+                    vector<float> _p2x;
+                    vector<float> _p2y;
+
+                    int _nlines = 0;
+
+                #endif
+
                     for ( int q = 0; q < N; q++ )
                     {
                         getline( _fileHandle, _line );
@@ -259,7 +281,8 @@ namespace app
                         DS::LNode<DS::LGraph<int, double> >* _pNode = m_graph.insertNode( _id, _x, _y, _id );
 
                     #ifdef USE_BATCH_RENDER
-
+                        _px[q] = _x;
+                        _py[q] = _y;
                     #else
                         _pNode->glIndx = gl::LPrimitivesRenderer2D::instance->addPoint( _x, _y );
                     #endif
@@ -287,7 +310,14 @@ namespace app
                         if ( _pEdges.size() != 0 )
                         {
                         #ifdef USE_BATCH_RENDER
+                            _nlines++;
+                            _p1x.push_back( _pNodeFrom->x );
+                            _p1y.push_back( _pNodeFrom->y );
+                            _p2x.push_back( _pNodeTo->x );
+                            _p2y.push_back( _pNodeTo->y );
 
+                            _pEdges[0]->glIndx = _nlines - 1;
+                            _pEdges[1]->glIndx = _nlines - 1;
                         #else
                             _pEdges[0]->glIndx = gl::LPrimitivesRenderer2D::instance->addLine( _pNodeFrom->x, _pNodeFrom->y, 
                                                                                                _pNodeTo->x, _pNodeTo->y );
@@ -297,6 +327,13 @@ namespace app
                     }
 
                     _fileHandle.close();
+
+                #ifdef USE_BATCH_RENDER
+
+                    m_graph.nodes_glIndx = gl::LPrimitivesRenderer2D::instance->addPointSwarm( _px, _py, N );
+                    m_graph.edges_glIndx = gl::LPrimitivesRenderer2D::instance->addLineSwarm( _p1x.data(), _p1y.data(), _p2x.data(), _p2y.data(), _nlines );
+
+                #endif
                 }
 
                 cout << "done" << endl;
@@ -324,7 +361,9 @@ namespace app
                         if ( _edge_parent != NULL )
                         {
                         #ifdef USE_BATCH_RENDER
-
+                            gl::LPrimitivesRenderer2D::instance->updateSwarmLineColor( m_graph.edges_glIndx, 
+                                                                                       _edge_parent->glIndx,
+                                                                                       1.0f, 1.0f, 1.0f );
                         #else
                             gl::LPrimitivesRenderer2D::instance->updateLineColor( _edge_parent->glIndx, 1.0f, 1.0f, 1.0f );
                         #endif
@@ -388,7 +427,9 @@ namespace app
                         DS::LNode<DS::LGraph<int,double>>* _successor = _edge->nodes[1];
 
                     #ifdef USE_BATCH_RENDER
-
+                        gl::LPrimitivesRenderer2D::instance->updateSwarmLineColor( m_graph.edges_glIndx,
+                                                                                   _edge->glIndx, 
+                                                                                   0.0f, 0.0f, 1.0f );
                     #else
                         gl::LPrimitivesRenderer2D::instance->updateLineColor( _edge->glIndx, 0.0f, 0.0f, 1.0f );
                     #endif
@@ -449,7 +490,9 @@ namespace app
                         if ( _edge_parent != NULL )
                         {
                         #ifdef USE_BATCH_RENDER
-                            
+                            gl::LPrimitivesRenderer2D::instance->updateSwarmLineColor( m_graph.edges_glIndx,
+                                                                                       _edge_parent->glIndx, 
+                                                                                       0.0f, 1.0f, 0.0f );
                         #else
                             gl::LPrimitivesRenderer2D::instance->updateLineColor( _edge_parent->glIndx, 0.0f, 1.0f, 0.0f );
                         #endif
@@ -551,7 +594,11 @@ namespace app
                             gl::LPrimitivesRenderer2D::instance->updatePoint( m_pInfo.end_glIndx,
                                                                               m_pInfo.end->x,
                                                                               m_pInfo.end->y );
+                        #ifdef USE_PARALLEL_REQUESTS
+                            createPathFinder();
+                        #else
                             calculatePath();
+                        #endif
                         }
                         else
                         {
@@ -564,7 +611,12 @@ namespace app
                                 _node->g = 0;
                                 _node->h = 0;
                             #ifdef USE_BATCH_RENDER
-
+                                for ( int e = 0; e < _node->edges.size(); e++ )
+                                {
+                                    gl::LPrimitivesRenderer2D::instance->updateSwarmLineColor( m_graph.edges_glIndx,
+                                                                                               _node->edges[e]->glIndx, 
+                                                                                               1.0f, 1.0f, 1.0f );
+                                }
                             #else
                                 for ( int e = 0; e < _node->edges.size(); e++ )
                                 {

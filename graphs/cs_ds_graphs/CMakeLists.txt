@@ -1,11 +1,12 @@
 cmake_minimum_required(VERSION 3.5.0)
-project( graphApp )
+project( graphApp C CXX )
 
 set(CMAKE_BUILD_TYPE Debug)
 
 #find_package( CUDA )
 find_package( OpenGL REQUIRED )
 find_package( GLEW REQUIRED )
+find_package( Threads REQUIRED )
 #find_package( OpenCL REQUIRED )
 
 find_package( PkgConfig REQUIRED )
@@ -50,4 +51,4 @@ add_executable( graphApp
 				app/LAppGraph.cpp
 				lib/delaunay.c )
 
-target_link_libraries( graphApp ${OPENGL_LIBRARIES} ${GLFW_LIBRARIES} GLEW::GLEW )
+target_link_libraries( graphApp ${OPENGL_LIBRARIES} ${GLFW_LIBRARIES} GLEW::GLEW ${CMAKE_THREAD_LIBS_INIT} )

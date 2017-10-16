@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../common.h"
+
 #include <iostream>
 #include <vector>
 #include <list>

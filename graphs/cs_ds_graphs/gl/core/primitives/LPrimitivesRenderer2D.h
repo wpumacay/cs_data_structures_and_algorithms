@@ -105,6 +105,8 @@ namespace engine
                               float g = DEFAULT_COLOR_G, 
                               float b = DEFAULT_COLOR_B );
 
+          void updateSwarmLineColor( int glIndx, int lIndx, float r, float g, float b );
+
             /*
             void addCircleSwarm( float* cx, float* cy, float* radius,
                                   int nCircles,

@@ -168,6 +168,12 @@ namespace engine
 			return m_primitivesPools[primitive::PRIMITIVE_LINE_SWARM].size() - 1;
 		}
 
+		void LPrimitivesRenderer2D::updateSwarmLineColor( int glIndx, int lIndx, float r, float g, float b )
+		{
+			reinterpret_cast<LPrimitiveLineSwarm*>
+						( m_primitivesPools[primitive::PRIMITIVE_LINE_SWARM][glIndx] )->updateLineColor( lIndx, r, g, b );
+		}
+
 	}
 
 

@@ -31,6 +31,8 @@ namespace DS
 		void removeEdge( Edge* edge );
 		void removeNode( Node* node );
 
+		int nodes_glIndx;
+		int edges_glIndx;
 
 		void print();
 	};

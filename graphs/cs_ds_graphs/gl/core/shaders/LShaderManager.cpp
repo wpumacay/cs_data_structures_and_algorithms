@@ -163,6 +163,11 @@ void engine::gl::LShaderManager::initialize()
 												           		  "gl/core/shaders/primitives/gl_primitive_line_geometry_shader.glsl" );
 
 	this->loadedShaders[BASE_SHADER_LINE] = _id;
+
+	_id = this->createProgram( "gl/core/shaders/primitives/gl_primitive_line_vertex_shader.glsl",
+							   "gl/core/shaders/primitives/gl_primitive_line_fragment_shader.glsl" );
+
+	this->loadedShaders[BASE_SHADER_SWARM_LINE] = _id;
 }
 
 void engine::gl::LShaderManager::create()

@@ -14,6 +14,7 @@ using namespace std;
 
 #define BASE_SHADER_CIRCLE 0
 #define BASE_SHADER_LINE   1
+#define BASE_SHADER_SWARM_LINE 2
 
 namespace engine
 {

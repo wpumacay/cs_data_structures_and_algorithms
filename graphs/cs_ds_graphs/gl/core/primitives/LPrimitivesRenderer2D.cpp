@@ -19,7 +19,7 @@ namespace engine
 
 		LPrimitivesRenderer2D::~LPrimitivesRenderer2D()
 		{
-			for ( int q = 0; q < 5; q++ )
+			for ( int q = 0; q < 8; q++ )
 			{
 				for ( int s = 0; s < m_primitivesPools[q].size(); s++ )
 				{
@@ -44,7 +44,7 @@ namespace engine
 		{
 			//m_numDrawable = 0;
 			//m_numNonDrawable = 0;
-			for ( int q = 4; q >= 0; q-- )
+			for ( int q = 7; q >= 0; q-- )
 			{
 				for ( int s = 0; s < m_primitivesPools[q].size(); s++ )
 				{
@@ -144,6 +144,28 @@ namespace engine
 								               float r, float g, float b )
 		{
 
+		}
+
+		int LPrimitivesRenderer2D::addPointSwarm( float* px, float* py, int nPoints,
+                                				  float r, float g, float b )
+		{
+			LPrimitivePointSwarm* _pSwarm = new LPrimitivePointSwarm( px, py, nPoints );
+			_pSwarm->init();
+			_pSwarm->setColor( r, g, b, 1.0f );
+
+			m_primitivesPools[primitive::PRIMITIVE_POINT_SWARM].push_back( _pSwarm );
+			return m_primitivesPools[primitive::PRIMITIVE_POINT_SWARM].size() - 1;
+		}
+
+		int LPrimitivesRenderer2D::addLineSwarm( float* p1x, float* p1y, float* p2x, float* p2y, int nLines,
+                                				 float r, float g, float b )
+		{
+			LPrimitiveLineSwarm* _lSwarm = new LPrimitiveLineSwarm( p1x, p1y, p2x, p2y, nLines );
+			_lSwarm->init();
+			_lSwarm->setColor( r, g, b, 1.0f );
+
+			m_primitivesPools[primitive::PRIMITIVE_LINE_SWARM].push_back( _lSwarm );
+			return m_primitivesPools[primitive::PRIMITIVE_LINE_SWARM].size() - 1;
 		}
 
 	}

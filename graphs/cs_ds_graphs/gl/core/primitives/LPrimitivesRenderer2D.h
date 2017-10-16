@@ -6,7 +6,9 @@
 #include "../LCommonGL.h"
 #include "LPrimitive.h"
 #include "LPrimitivePoint.h"
+#include "LPrimitivePointSwarm.h"
 #include "LPrimitiveLine.h"
+#include "LPrimitiveLineSwarm.h"
 #include "LPrimitiveRect.h"
 
 #define DEFAULT_COLOR_R 1.0f
@@ -30,7 +32,7 @@ namespace engine
             //LPrimitivePoint m_pointsPool[POOL_SIZE_POINTS];
             //int m_pointsPoolUseIndx;
 
-            vector<LPrimitive*> m_primitivesPools[6];
+            vector<LPrimitive*> m_primitivesPools[8];
 
             LPrimitivesRenderer2D();
 
@@ -89,25 +91,27 @@ namespace engine
 
             void updateLineColor( int indx,
                                   float r, float g, float b );
+            
+            int addPointSwarm( float* px, float* py,
+                               int nPoints,
+                               float r = DEFAULT_COLOR_R, 
+                               float g = DEFAULT_COLOR_G, 
+                               float b = DEFAULT_COLOR_B );
+
+            int addLineSwarm( float* p1x, float* p1y,
+                              float* p2x, float* p2y,
+                              int nLines,
+                              float r = DEFAULT_COLOR_R, 
+                              float g = DEFAULT_COLOR_G, 
+                              float b = DEFAULT_COLOR_B );
 
             /*
-            void addPointSwarm( float* px, float* py,
-                                 float r = DEFAULT_COLOR_R, 
-                                 float g = DEFAULT_COLOR_G, 
-                                 float b = DEFAULT_COLOR_B );
-
             void addCircleSwarm( float* cx, float* cy, float* radius,
                                   int nCircles,
                                   float r = DEFAULT_COLOR_R, 
                                   float g = DEFAULT_COLOR_G, 
                                   float b = DEFAULT_COLOR_B );
 
-            void addLineSwarm( float* p1x, float* p1y,
-                                float* p2x, float* p2y,
-                                int nLines,
-                                float r = DEFAULT_COLOR_R, 
-                                float g = DEFAULT_COLOR_G, 
-                                float b = DEFAULT_COLOR_B );
             */
         };
 

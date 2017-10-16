@@ -9,7 +9,7 @@
 
 
 // NUMBER OF RANDOM NODES IN THE GRAPH
-#define NUM_GRAPH_NODES 10000
+#define NUM_GRAPH_NODES 100000
 
 
 
@@ -24,9 +24,12 @@
 // PARAMETER FOR THE COLLISION DETECTION WITH A NODE
 #define RANGE_PICK 15.0f
 
-#define USE_LIGHT_MODE_ONLY 1
-#define USE_SAVED_GRAPH 1
+//#define USE_LIGHT_MODE_ONLY 1
+//#define USE_SAVED_GRAPH 1
+#define USE_SAVED_GRAPH_PATH "res/1000points.data"
+#define USE_CLUSTERING_BFS 1
 
+#define USE_BATCH_RENDER 1
 
 // Some other useful stuff
 #define RANDOM() ( rand() / ( float )RAND_MAX )

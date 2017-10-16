@@ -55,7 +55,7 @@ namespace app
             {
                 vector<string> _res;
                 
-                int pos = txt.find( ',' );
+                int pos = txt.find( ' ' );
                 if ( pos == std::string::npos )
                 {
                     _res.push_back( txt );
@@ -91,6 +91,10 @@ namespace app
                 initRandomGraph();
             #endif
 
+            #ifdef USE_CLUSTERING_BFS
+
+            #endif
+
                 m_pInfo.start_glIndx = gl::LPrimitivesRenderer2D::instance->addPoint( 1000000.0f, 1000000.0f, 1.0f, 0.0f, 0.0f );
                 m_pInfo.end_glIndx = gl::LPrimitivesRenderer2D::instance->addPoint( 1000000.0f, 1000000.0f, 1.0f, 0.0f, 0.0f );
             }
@@ -99,13 +103,32 @@ namespace app
             {
                 // Init Nodes **********************************************************************
 
+                #ifdef USE_BATCH_RENDER
+
+                float* _px = new float[NUM_GRAPH_NODES];
+                float* _py = new float[NUM_GRAPH_NODES];
+
+                vector<float> _p1x;
+                vector<float> _p1y;
+                vector<float> _p2x;
+                vector<float> _p2y;
+
+                int _nlines = 0;
+
+                #endif
+
                 for ( int q = 0; q < NUM_GRAPH_NODES; q++ )
                 {
                     double _x = ( RANDOM() - 0.5 ) * m_width;
                     double _y = ( RANDOM() - 0.5 ) * m_height;
                     DS::LNode<DS::LGraph<int, double> >* _pNode = m_graph.insertNode( q, _x, _y, q );
 
+                #ifdef USE_BATCH_RENDER
+                    _px[q] = _x;
+                    _py[q] = _y;
+                #else
                     _pNode->glIndx = gl::LPrimitivesRenderer2D::instance->addPoint( _x, _y );
+                #endif
                 }
                 // *********************************************************************************
 
@@ -143,9 +166,19 @@ namespace app
                                                                                                    _dist );
                         if ( _pEdges.size() != 0 )
                         {
+                        #ifdef USE_BATCH_RENDER
+
+                            _nlines++;
+                            _p1x.push_back( _pEdges[0]->nodes[0]->x );
+                            _p1y.push_back( _pEdges[0]->nodes[0]->y );
+                            _p2x.push_back( _pEdges[0]->nodes[1]->x );
+                            _p2y.push_back( _pEdges[0]->nodes[1]->y );
+
+                        #else
                             _pEdges[0]->glIndx = gl::LPrimitivesRenderer2D::instance->addLine( _pEdges[0]->nodes[0]->x, _pEdges[0]->nodes[0]->y, 
                                                                                                _pEdges[0]->nodes[1]->x, _pEdges[0]->nodes[1]->y );
                             _pEdges[1]->glIndx = _pEdges[0]->glIndx;
+                        #endif
                         }
                             
                     }
@@ -155,8 +188,14 @@ namespace app
                 delete _tres;
                 delete[] _points;
 
-                // *********************************************************************************
+            #ifdef USE_BATCH_RENDER
 
+                m_graph.nodes_glIndx = gl::LPrimitivesRenderer2D::instance->addPointSwarm( _px, _py, NUM_GRAPH_NODES );
+                m_graph.edges_glIndx = gl::LPrimitivesRenderer2D::instance->addLineSwarm( _p1x.data(), _p1y.data(), _p2x.data(), _p2y.data(), _nlines );
+
+            #endif
+
+                // *********************************************************************************
             }
 
             void saveGraph()
@@ -198,27 +237,36 @@ namespace app
             {
                 cout << "loading graph" << endl;
 
-                ifstream _fileHandle ( "graph_test.txt" );
+                ifstream _fileHandle ( USE_SAVED_GRAPH_PATH );
                 if ( _fileHandle.is_open() )
                 {
                     string _line;
 
                     getline( _fileHandle, _line );
 
-                    int N = stoi( _line );
+                    vector<string> _params = split( _line );
+                    int N = stoi( _params[1] );
+
                     for ( int q = 0; q < N; q++ )
                     {
                         getline( _fileHandle, _line );
 
                         vector<string> _nodeStr = split( _line );
-                        int _id = stoi( _nodeStr[0] );
-                        float _x = stof( _nodeStr[1] );
-                        float _y = stof( _nodeStr[2] );
+                        int _id = q;
+                        float _x = stof( _nodeStr[0] );
+                        float _y = stof( _nodeStr[1] );
 
                         DS::LNode<DS::LGraph<int, double> >* _pNode = m_graph.insertNode( _id, _x, _y, _id );
 
+                    #ifdef USE_BATCH_RENDER
+
+                    #else
                         _pNode->glIndx = gl::LPrimitivesRenderer2D::instance->addPoint( _x, _y );
+                    #endif
                     }
+
+                    getline( _fileHandle, _line );// dummy line
+                    _params = split( _line );
 
                     for( string _edgeLine; getline( _fileHandle, _edgeLine ); )
                     {
@@ -238,9 +286,13 @@ namespace app
                                                                                                    _dist );
                         if ( _pEdges.size() != 0 )
                         {
+                        #ifdef USE_BATCH_RENDER
+
+                        #else
                             _pEdges[0]->glIndx = gl::LPrimitivesRenderer2D::instance->addLine( _pNodeFrom->x, _pNodeFrom->y, 
                                                                                                _pNodeTo->x, _pNodeTo->y );
                             _pEdges[1]->glIndx = _pEdges[0]->glIndx;
+                        #endif
                         }
                     }
 
@@ -271,7 +323,11 @@ namespace app
                     {
                         if ( _edge_parent != NULL )
                         {
+                        #ifdef USE_BATCH_RENDER
+
+                        #else
                             gl::LPrimitivesRenderer2D::instance->updateLineColor( _edge_parent->glIndx, 1.0f, 1.0f, 1.0f );
+                        #endif
                         }
                         _node = _node_parent;
                         _node_parent = _node_parent->parentInfo.first;
@@ -331,7 +387,11 @@ namespace app
                         DS::LEdge<DS::LGraph<int,double>>* _edge = _nextToExplore->edges[q];
                         DS::LNode<DS::LGraph<int,double>>* _successor = _edge->nodes[1];
 
+                    #ifdef USE_BATCH_RENDER
+
+                    #else
                         gl::LPrimitivesRenderer2D::instance->updateLineColor( _edge->glIndx, 0.0f, 0.0f, 1.0f );
+                    #endif
 
                         if ( _explored.find( _successor->id ) != _explored.end() )
                         {
@@ -388,7 +448,11 @@ namespace app
                     {
                         if ( _edge_parent != NULL )
                         {
+                        #ifdef USE_BATCH_RENDER
+                            
+                        #else
                             gl::LPrimitivesRenderer2D::instance->updateLineColor( _edge_parent->glIndx, 0.0f, 1.0f, 0.0f );
+                        #endif
                         }
                         _node = _node_parent;
                         _node_parent = _node_parent->parentInfo.first;
@@ -499,10 +563,14 @@ namespace app
                                 _node->f = 0;
                                 _node->g = 0;
                                 _node->h = 0;
+                            #ifdef USE_BATCH_RENDER
+
+                            #else
                                 for ( int e = 0; e < _node->edges.size(); e++ )
                                 {
                                     gl::LPrimitivesRenderer2D::instance->updateLineColor( _node->edges[e]->glIndx, 1.0f, 1.0f, 1.0f );
                                 }
+                            #endif
                             }
 
                             m_pInfo.start = _node;

@@ -30,7 +30,9 @@ namespace engine
                 PRIMITIVE_TRIANGLE = 2,
                 PRIMITIVE_QUAD = 3,
                 PRIMITIVE_CIRCLE = 4,
-                PRIMITIVE_RECT = 5
+                PRIMITIVE_RECT = 5,
+                PRIMITIVE_POINT_SWARM = 6,
+                PRIMITIVE_LINE_SWARM = 7
             };
         }
 
@@ -70,7 +72,7 @@ namespace engine
                               m_vertices, GL_STATIC_DRAW );
 
                 glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, ( void* ) 0 );
-
+                glEnableVertexAttribArray( 0 );
 
                 glBindVertexArray( 0 );
             }

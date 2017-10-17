@@ -9,6 +9,12 @@
 
 #include "../lib/delaunay.h"
 
+#ifdef USE_PARALLEL_REQUESTS
+
+#include "LPathFinder.h"
+
+#endif
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -52,8 +58,9 @@ namespace app
             LPathInfo m_pInfo;
 
         #ifdef USE_PARALLEL_REQUESTS
-
-
+            LPathFinder* m_pathFinders[MAX_PARALLEL_REQUESTS];
+            vector<int> m_startIndxs;
+            vector<int> m_endIndxs;
         #endif
 
             vector<string> split( const string &txt )
@@ -100,8 +107,31 @@ namespace app
 
             #endif
 
+            #ifdef USE_PARALLEL_REQUESTS
+
+                for ( int q = 0; q < MAX_PARALLEL_REQUESTS; q++ )
+                {
+                    m_pathFinders[q] = new LPathFinder( &m_graph, q );
+                }
+
+            #endif
+
+            #ifdef USE_PARALLEL_REQUESTS
+
+                for ( int q = 0; q < MAX_PARALLEL_REQUESTS; q++ )
+                {
+                    m_pathFinders[q]->start_glIndx = gl::LPrimitivesRenderer2D::instance->addPoint( 1000000.0f, 1000000.0f, 1.0f, 0.0f, 0.0f );
+                    m_pathFinders[q]->end_glIndx = gl::LPrimitivesRenderer2D::instance->addPoint( 1000000.0f, 1000000.0f, 1.0f, 0.0f, 0.0f );                    
+
+                    cout << "startglIndx: " << m_pathFinders[q]->start_glIndx << endl;
+                }
+
+            #else
+
                 m_pInfo.start_glIndx = gl::LPrimitivesRenderer2D::instance->addPoint( 1000000.0f, 1000000.0f, 1.0f, 0.0f, 0.0f );
                 m_pInfo.end_glIndx = gl::LPrimitivesRenderer2D::instance->addPoint( 1000000.0f, 1000000.0f, 1.0f, 0.0f, 0.0f );
+
+            #endif
             }
 
             void initRandomGraph()
@@ -339,6 +369,30 @@ namespace app
                 cout << "done" << endl;
             }
 
+
+        #ifdef USE_PARALLEL_REQUESTS
+
+            void requestPathFinders()
+            {
+                for ( int q = 0; q < m_startIndxs.size(); q++ )
+                {
+                    m_pathFinders[q]->launch( m_graph.nodes[m_startIndxs[q]], 
+                                              m_graph.nodes[m_endIndxs[q]] );
+                }
+
+                for ( int q = 0; q < m_startIndxs.size(); q++ )
+                {
+                    m_pathFinders[q]->join();
+                }
+
+                for ( int q = 0; q < m_startIndxs.size(); q++ )
+                {
+                    m_pathFinders[q]->reconstructPath();
+                }
+            }
+
+        #else
+
             void calculatePath()
             {
                 if ( m_pInfo.start == NULL ||
@@ -515,6 +569,8 @@ namespace app
 
             }
 
+        #endif
+
             void update( float dt )
             {
                 m_camera->update( dt );
@@ -591,14 +647,65 @@ namespace app
                             }
                             cout << "picked end" << endl;
                             m_pInfo.end = _node;
+
+                        #ifdef USE_PARALLEL_REQUESTS
+
+                            // Check for max MAX_PARALLEL_REQUESTS nodes in the range of the node picked
+                            m_endIndxs.clear();
+                            m_endIndxs.push_back( _node->id );
+
+                            for ( int q = 0; q < m_startIndxs.size() - 1; q++ )
+                            {
+                                for ( int n = 0; n < m_graph.nodes.size(); n++ )
+                                {
+                                    bool _already = false;
+                                    for ( int s = 0; s < m_endIndxs.size(); s++ )
+                                    {
+                                        if ( m_endIndxs[s] == m_graph.nodes[n]->id )
+                                        {
+                                            _already = true;
+                                            break;
+                                        }
+                                    }
+
+                                    if ( _already )
+                                    {
+                                        continue;
+                                    }
+
+                                    float _ddx = _node->x - m_graph.nodes[n]->x;
+                                    float _ddy = _node->y - m_graph.nodes[n]->y;
+                                    float _ddist = sqrt( _ddx * _ddx + _ddy * _ddy );
+
+                                    if ( _ddist < MAX_RANGE_SEARCH )
+                                    {
+                                        m_endIndxs.push_back( m_graph.nodes[n]->id );
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if ( m_endIndxs.size() != m_startIndxs.size() )
+                            {
+                                cout << "warning: start and end requests doesnt not match" << endl;
+                                return;
+                            }
+
+                            for ( int q = 0; q < m_endIndxs.size(); q++ )
+                            {
+                                gl::LPrimitivesRenderer2D::instance->updatePoint( m_pathFinders[q]->end_glIndx,
+                                                                                  m_graph.nodes[m_endIndxs[q]]->x,
+                                                                                  m_graph.nodes[m_endIndxs[q]]->y );
+                            }
+
+                            requestPathFinders();
+                        #else
                             gl::LPrimitivesRenderer2D::instance->updatePoint( m_pInfo.end_glIndx,
                                                                               m_pInfo.end->x,
                                                                               m_pInfo.end->y );
-                        #ifdef USE_PARALLEL_REQUESTS
-                            createPathFinder();
-                        #else
                             calculatePath();
                         #endif
+
                         }
                         else
                         {
@@ -626,9 +733,61 @@ namespace app
                             }
 
                             m_pInfo.start = _node;
+
+                        #ifdef USE_PARALLEL_REQUESTS
+                            // Check for max MAX_PARALLEL_REQUESTS nodes in the range of the node picked
+                            m_startIndxs.clear();
+                            m_startIndxs.push_back( _node->id );
+
+                            for ( int q = 0; q < MAX_PARALLEL_REQUESTS - 1; q++ )
+                            {
+                                for ( int n = 0; n < m_graph.nodes.size(); n++ )
+                                {
+                                    bool _already = false;
+                                    for ( int s = 0; s < m_startIndxs.size(); s++ )
+                                    {
+                                        if ( m_startIndxs[s] == m_graph.nodes[n]->id )
+                                        {
+                                            _already = true;
+                                            break;
+                                        }
+                                    }
+
+                                    if ( _already )
+                                    {
+                                        continue;
+                                    }
+
+                                    float _ddx = _node->x - m_graph.nodes[n]->x;
+                                    float _ddy = _node->y - m_graph.nodes[n]->y;
+                                    float _ddist = sqrt( _ddx * _ddx + _ddy * _ddy );
+
+                                    if ( _ddist < MAX_RANGE_SEARCH )
+                                    {
+                                        m_startIndxs.push_back( m_graph.nodes[n]->id );
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if ( m_startIndxs.size() < MAX_PARALLEL_REQUESTS )
+                            {
+                                cout << "warning: couldnt find the requested number of start nodes" << endl;
+                            }
+
+                            for ( int q = 0; q < m_startIndxs.size(); q++ )
+                            {
+                                cout << "indx: " << m_startIndxs[q] << endl;
+                                gl::LPrimitivesRenderer2D::instance->updatePoint( m_pathFinders[q]->start_glIndx,
+                                                                                  m_graph.nodes[m_startIndxs[q]]->x,
+                                                                                  m_graph.nodes[m_startIndxs[q]]->y );
+                            }
+
+                        #else
                             gl::LPrimitivesRenderer2D::instance->updatePoint( m_pInfo.start_glIndx,
                                                                               m_pInfo.start->x,
                                                                               m_pInfo.start->y );
+                        #endif
                         }
 
                         break;

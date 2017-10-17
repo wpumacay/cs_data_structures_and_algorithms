@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "LPathFinderInterface.h"
+#include "LCommonPathFinding.h"
 
 using namespace std;
 using namespace engine;
@@ -10,91 +10,58 @@ namespace app
 {
 
 
-	namespace graph
-	{
+    namespace graph
+    {
 
 
-		class LPathFinder
-		{
+        class LPathFinder
+        {
 
-			private :
+            private :
 
-			DS::LGraph<int, double>* m_graphRef;
-			pthread_t m_threadHandle;
+            DS::LGraph<int, double>* m_graphRef;
+            pthread_t m_threadHandle;
 
-			DS::LNode<DS::LGraph<int, double> >* m_start;
-			DS::LNode<DS::LGraph<int, double> >* m_end;
-			DS::LNode<DS::LGraph<int, double> >* m_pathNode;
+            DS::LNode<DS::LGraph<int, double> >* m_start;
+            DS::LNode<DS::LGraph<int, double> >* m_end;
+            DS::LNode<DS::LGraph<int, double> >* m_pathNode;
 
-			LPathFinderWorkData m_wData;
+            LPathFinderWorkData m_wData;
 
-			public :
+            public :
 
-			int start_glIndx;
-			int end_glIndx;
-			int id;
-			bool isRunning;
+            int start_glIndx;
+            int end_glIndx;
+            int id;
+            bool isRunning;
 
-			LPathFinder( DS::LGraph<int, double>* pGraph, int pId )
-			{
-				m_graphRef = pGraph;
-				id = pId;
-				isRunning = false;
+            LPathFinder( DS::LGraph<int, double>* pGraph, int pId )
+            {
+                m_graphRef = pGraph;
+                id = pId;
+                isRunning = false;
 
-				m_start = NULL;
-				m_end = NULL;
-				m_pathNode = NULL;
-				start_glIndx = -1;
-				end_glIndx = -1;
-			}
+                m_start = NULL;
+                m_end = NULL;
+                m_pathNode = NULL;
+                start_glIndx = -1;
+                end_glIndx = -1;
+            }
 
-			virtual void launch( DS::LNode<DS::LGraph<int, double> >* pStart,
-								 DS::LNode<DS::LGraph<int, double> >* pEnd )
-			{
-				m_start = pStart;
-				m_end = pEnd;
+            virtual void launch( DS::LNode<DS::LGraph<int, double> >* pStart,
+                                 DS::LNode<DS::LGraph<int, double> >* pEnd )
+            {
+                m_start = pStart;
+                m_end = pEnd;
+            }
 
-				// Do some cleanup before calculating the path
-                if ( m_pathNode != NULL )
-                {
-                    cout << "clean previous path from pathfinder " << this->id << endl;
+            void join()
+            {
+                pthread_join( m_threadHandle, ( void** )&m_pathNode );
+            }
 
-                    // Change the color of the edges of the path
-                    DS::LNode<DS::LGraph<int,double>>* _node = m_pathNode;
-                    DS::LNode<DS::LGraph<int,double>>* _node_parent = _node->parentInfo[this->id].first;
-                    DS::LEdge<DS::LGraph<int,double>>* _edge_parent = _node->parentInfo[this->id].second;
-                    while( _node_parent != NULL )
-                    {
-                        _node = _node_parent;
-                        _node_parent = _node_parent->parentInfo[this->id].first;
-                        if ( _node_parent != NULL )
-                        {
-                            _edge_parent = _node_parent->parentInfo[this->id].second;
-                        }
-                    }
-
-                    m_pathNode = NULL;
-                }
-
-				// prepare threads and launch them
-				m_wData.start = m_start;
-				m_wData.end = m_end;
-				m_wData.pathNode = m_pathNode;
-				m_wData.id = this->id;
-
-				this->isRunning = true;
-
-				pthread_create( &m_threadHandle, NULL, LPathFinder::calculatePath, ( void* ) &m_wData );
-
-			}
-
-			void join()
-			{
-				pthread_join( m_threadHandle, ( void** )&m_pathNode );
-			}
-
-			void reconstructPath()
-			{
+            void reconstructPath()
+            {
                 if ( m_pathNode != NULL )
                 {
                     // Change the color of the edges of the path
@@ -122,11 +89,11 @@ namespace app
                     }
 
                 }
-			}
+            }
 
-			static void* calculatePath( void* pWorkData )
-			{
-				LPathFinderWorkData* _wData = ( LPathFinderWorkData* ) pWorkData;
+            static void* calculatePath( void* pWorkData )
+            {
+                LPathFinderWorkData* _wData = ( LPathFinderWorkData* ) pWorkData;
 
                 map<int,DS::LNode<DS::LGraph<int,double>>* > _explored;
                 map<int,DS::LNode<DS::LGraph<int,double>>* > _toExplore;
@@ -225,22 +192,22 @@ namespace app
                     return ( void* ) _pathNode;
                 }
                 
-				cout << "not found" << endl;
+                cout << "not found" << endl;
                 return NULL;
 
-			}
+            }
 
-			DS::LNode<DS::LGraph<int, double> >* pathNode()
-			{
-				return m_pathNode;
-			}
-
-
-		};
+            DS::LNode<DS::LGraph<int, double> >* pathNode()
+            {
+                return m_pathNode;
+            }
 
 
+        };
 
-	}
+
+
+    }
 
 
 

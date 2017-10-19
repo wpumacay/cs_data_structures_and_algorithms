@@ -1,7 +1,11 @@
 
 #pragma once
 
-#include "LCommonPathFinding.h"
+#include "LPathFinderInterface.h"
+
+#include <fstream>
+#include <string>
+#include <algorithm>
 
 using namespace std;
 using namespace engine;
@@ -14,28 +18,18 @@ namespace app
     {
 
 
-        class LPathFinder
+        class LLandmarkPathFinder : public LPathFinderInterface
         {
 
             private :
 
-            DS::LGraph<int, double>* m_graphRef;
-            pthread_t m_threadHandle;
+            int m_landmarkIDs[NUM_LANDMARKS];
 
-            DS::LNode<DS::LGraph<int, double> >* m_start;
-            DS::LNode<DS::LGraph<int, double> >* m_end;
-            DS::LNode<DS::LGraph<int, double> >* m_pathNode;
-
-            LPathFinderWorkData m_wData;
+            vector<float> m_preCalc[NUM_LANDMARKS];
 
             public :
 
-            int start_glIndx;
-            int end_glIndx;
-            int id;
-            bool isRunning;
-
-            LPathFinder( DS::LGraph<int, double>* pGraph, int pId )
+            LLandmarkPathFinder( DS::LGraph<int, double>* pGraph, int pId )
             {
                 m_graphRef = pGraph;
                 id = pId;
@@ -48,47 +42,142 @@ namespace app
                 end_glIndx = -1;
             }
 
-            virtual void launch( DS::LNode<DS::LGraph<int, double> >* pStart,
-                                 DS::LNode<DS::LGraph<int, double> >* pEnd )
+            void loadLandmarks()
             {
-                m_start = pStart;
-                m_end = pEnd;
-            }
+                cout << "loading landmarks" << endl;
 
-            void join()
-            {
-                pthread_join( m_threadHandle, ( void** )&m_pathNode );
-            }
-
-            void reconstructPath()
-            {
-                if ( m_pathNode != NULL )
+                ifstream _fileHandle ( USE_SAVED_GRAPH_LANDMARKS );
+                if ( _fileHandle.is_open() )
                 {
-                    // Change the color of the edges of the path
-                    DS::LNode<DS::LGraph<int,double>>* _node = m_pathNode;
-                    DS::LNode<DS::LGraph<int,double>>* _node_parent = _node->parentInfo[this->id].first;
-                    DS::LEdge<DS::LGraph<int,double>>* _edge_parent = _node->parentInfo[this->id].second;
-                    while( _node_parent != NULL )
+                    string _line;
+
+                    for ( int q = 0; q < NUM_LANDMARKS; q++ )
                     {
-                        if ( _edge_parent != NULL )
+                        getline( _fileHandle, _line );
+
+                        m_landmarkIDs[q] = stoi( _line );
+                    }
+                }
+
+                // Just for fun, show the nonconnected nodes
+                cout << "nonconnected!!!" << endl;
+                for ( int q = 0; q < m_graphRef->nodes.size(); q++ )
+                {
+                    if ( m_graphRef->nodes[q]->edges.size() == 0 )
+                    {
+                        cout << m_graphRef->nodes[q]->id << endl;
+                    }
+                }
+                cout << "nonconnected!!!" << endl;
+
+                for ( int q = 0; q < NUM_LANDMARKS; q++ )
+                {
+                    gl::LPrimitivesRenderer2D::instance->addPoint( m_graphRef->nodes[m_landmarkIDs[q]]->x,
+                                                                   m_graphRef->nodes[m_landmarkIDs[q]]->y,
+                                                                   0.0f, 1.0f, 0.0f );
+                }
+            }
+
+            void preCalc()
+            {
+                cout << "preCalc ..." << endl;
+
+                for ( int q = 0; q < NUM_LANDMARKS; q++ )
+                {
+                    preCalc_( q, m_landmarkIDs[q] );
+                }
+
+                cout << "done" << endl;
+            }
+
+            void preCalc_( int pLandmarkIndx, int pLandmarkNodeId )
+            {
+                cout << "precalulating for landmark " << pLandmarkIndx << endl;
+                float _total = m_graphRef->nodes.size();
+                // Start Dijkstra
+                DS::LNode< DS::LGraph<int, double> >* _start = m_graphRef->nodes[pLandmarkNodeId];
+                _start->d = 0;
+
+                LNodePriorityQueueDijkstra _pq;
+                //LNodeVectPriorityQueue _pq;
+
+                for ( int q = 0; q < m_graphRef->nodes.size(); q++ )
+                {
+                    if ( m_graphRef->nodes[q]->id != _start->id )
+                    {
+                        m_graphRef->nodes[q]->d = INF;
+                    }
+                    _pq.push( m_graphRef->nodes[q] );
+                }
+
+                int _count = 0;
+                while ( !_pq.empty() )
+                {
+                    DS::LNode< DS::LGraph<int, double> >* _u = _pq.top();
+                    _pq.pop();
+                    // cout << "dddd: " << _u->d << endl;
+
+                    for ( int q = 0; q < _u->edges.size(); q++ )
+                    {
+                        DS::LNode< DS::LGraph<int, double> >* _v = _u->edges[q]->nodes[1];
+
+                        // Relaxation
+                        if ( _v->d > _u->d + _u->edges[q]->data )
                         {
-                        #ifdef USE_BATCH_RENDER
-                            gl::LPrimitivesRenderer2D::instance->updateSwarmLineColor( m_graphRef->edges_glIndx,
-                                                                                       _edge_parent->glIndx, 
-                                                                                       0.0f, 1.0f, 0.0f );
-                        #else
-                            gl::LPrimitivesRenderer2D::instance->updateLineColor( _edge_parent->glIndx, 0.0f, 1.0f, 0.0f );
-                        #endif
-                        }
-                        _node = _node_parent;
-                        _node_parent = _node_parent->parentInfo[this->id].first;
-                        if ( _node_parent != NULL )
-                        {
-                            _edge_parent = _node_parent->parentInfo[this->id].second;
+                            _v->d = _u->d + _u->edges[q]->data;
+                            _pq.push( _v );
                         }
                     }
 
+                    
+                    _count++;
+                    //cout << "percent: " << _count / _total << endl;
                 }
+
+                // Save the precalculation into the corresponding map
+                for ( int q = 0; q < m_graphRef->nodes.size(); q++ )
+                {
+                    m_preCalc[pLandmarkIndx].push_back( m_graphRef->nodes[q]->d );
+
+                    // print just for fun
+                    // cout << "d: " << m_graphRef->nodes[q]->d << endl;
+                }
+
+            }
+
+            void savePreCalc()
+            {
+                cout << "saving precalc" << endl;
+
+                ofstream _fileHandle ( USE_SAVED_GRAPH_PRECALC );
+
+                if ( _fileHandle.is_open() )
+                {
+                    for ( int q = 0; q < NUM_LANDMARKS; q++ )
+                    {
+                        _fileHandle << "LANDMARK_ID " << m_landmarkIDs[q] << endl;
+                        for ( int p = 0; p < m_preCalc[q].size(); p++ )
+                        {
+                            _fileHandle << p << " " << m_preCalc[q][p] << endl;
+                        }
+                    }
+
+                    _fileHandle.close();
+                }
+                cout << "done" << endl;
+            }
+
+            void loadPreCalc()
+            {
+
+            }
+
+            void launch() override
+            {
+                m_wData.pPreCalc = m_preCalc;
+                m_wData.pLandmarkIDs = m_landmarkIDs;
+
+                pthread_create( &m_threadHandle, NULL, LLandmarkPathFinder::calculatePath, ( void* ) &m_wData );
             }
 
             static void* calculatePath( void* pWorkData )
@@ -96,14 +185,31 @@ namespace app
                 LPathFinderWorkData* _wData = ( LPathFinderWorkData* ) pWorkData;
 
                 map<int,DS::LNode<DS::LGraph<int,double>>* > _explored;
+            #ifdef A_STAR_USE_PRIORITY_QUEUE
+                LNodePriorityQueue _toExplore;
+                _toExplore.push( _wData->start );
+            #else
                 map<int,DS::LNode<DS::LGraph<int,double>>* > _toExplore;
                 _toExplore[_wData->start->id] = _wData->start;
+            #endif
 
                 // Calculate the first heuristic value
-                double _dx = _wData->start->x - _wData->end->x;
-                double _dy = _wData->start->y - _wData->end->y;
-                double _h = sqrt( _dx * _dx + _dy * _dy );
+                float _dx = _wData->start->x - _wData->end->x;
+                float _dy = _wData->start->y - _wData->end->y;
+                float _h = sqrt( _dx * _dx + _dy * _dy );
                 _wData->start->g = 0;
+                for ( int l = 0; l < NUM_LANDMARKS; l++ )
+                {
+                    if ( _wData->start->id == _wData->pLandmarkIDs[l] )
+                    {
+                        continue;
+                    }
+                    float dt = _wData->pPreCalc[l][_wData->end->id];
+                    float dv = _wData->pPreCalc[l][_wData->start->id];
+
+                    //cout << "abs( dt - dv ) : " << abs( dt - dv ) << endl;
+                    _h = max( abs( dt - dv ), _h );
+                }
                 _wData->start->h = _h;
                 _wData->start->f = _h;
 
@@ -117,6 +223,12 @@ namespace app
 
                 while ( !_toExplore.empty() )
                 {
+                #ifdef A_STAR_USE_PRIORITY_QUEUE
+
+                    DS::LNode<DS::LGraph<int,double>>* _nextToExplore = _toExplore.top();
+                    _toExplore.pop();
+
+                #else
                     DS::LNode<DS::LGraph<int,double>>* _bestCandidate = NULL;
 
                     map<int,DS::LNode<DS::LGraph<int,double>>* >::iterator _it;
@@ -133,8 +245,11 @@ namespace app
                             _bestCandidate = _toExplore_candidate;
                         }
                     }
+
                     DS::LNode<DS::LGraph<int,double>>* _nextToExplore = _bestCandidate;
                     _toExplore.erase( _bestCandidate->id );
+
+                #endif
                     // Expand this node
                     _explored[_nextToExplore->id] = _nextToExplore;
 
@@ -143,16 +258,32 @@ namespace app
                         DS::LEdge<DS::LGraph<int,double>>* _edge = _nextToExplore->edges[q];
                         DS::LNode<DS::LGraph<int,double>>* _successor = _edge->nodes[1];
 
+                    #ifdef USE_BATCH_RENDER
+                        gl::LPrimitivesRenderer2D::instance->updateSwarmLineColor( _wData->graphRef->edges_glIndx,
+                                                                                   _edge->glIndx, 
+                                                                                   0.0f, 0.0f, 1.0f );
+                    #else
+                        gl::LPrimitivesRenderer2D::instance->updateLineColor( _edge->glIndx, 0.0f, 0.0f, 1.0f );
+                    #endif
+
                         if ( _explored.find( _successor->id ) != _explored.end() )
                         {
                             // Already explored, don't count it
                             continue;
                         }
 
+                    #ifndef A_STAR_USE_PRIORITY_QUEUE
                         if ( _toExplore.find( _successor->id ) != _toExplore.end() )
                         {
                             continue;
                         }
+
+                    #else
+                        if ( _successor->inOpen )
+                        {
+                            continue;
+                        }
+                    #endif
 
                         //_successor->parent = _nextToExplore;
                         _successor->parentInfo[_wData->id].first = _nextToExplore;
@@ -165,14 +296,36 @@ namespace app
                             break;
                         }
 
-                        double dx = _successor->x - _wData->end->x;
-                        double dy = _successor->y - _wData->end->y;
-                        double dist = sqrt( dx * dx + dy * dy );
+                        float dx = _successor->x - _wData->end->x;
+                        float dy = _successor->y - _wData->end->y;
+                        float dist = sqrt( dx * dx + dy * dy );
                         _successor->g = _nextToExplore->g + _edge->data;
+                        //cout << "dist: " << dist << endl;
+                        for ( int l = 0; l < NUM_LANDMARKS; l++ )
+                        {
+                            if ( _successor->id == _wData->pLandmarkIDs[l] )
+                            {
+                                continue;
+                            }
+                            float dt = _wData->pPreCalc[l][_wData->end->id];
+                            float dv = _wData->pPreCalc[l][_successor->id];
+
+                            //cout << "abs( dt - dv ) : " << abs( dt - dv ) << endl;
+                            dist = max( abs( dt - dv ), dist );
+                        }
                         _successor->h = dist;
+                        //cout << "fdist: " << dist << endl;
                         _successor->f = _successor->g + _successor->h;
 
+                    #ifdef A_STAR_USE_PRIORITY_QUEUE
+                        //if ( !_successor->inOpen )
+                        //{
+                            _successor->inOpen = true;
+                            _toExplore.push( _successor );
+                        //}
+                    #else
                         _toExplore[_successor->id] = _successor;
+                    #endif
 
                         _opCount++;
                     }
@@ -189,17 +342,16 @@ namespace app
                     _wData->pathNode = _pathNode;
                     cout << "opCount: " << _opCount << endl;
 
+                    _wData->working = 0;
+
                     return ( void* ) _pathNode;
                 }
                 
                 cout << "not found" << endl;
+                _wData->working = 0;
+
                 return NULL;
 
-            }
-
-            DS::LNode<DS::LGraph<int, double> >* pathNode()
-            {
-                return m_pathNode;
             }
 
 

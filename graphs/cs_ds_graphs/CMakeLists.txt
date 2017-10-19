@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5.0)
 project( graphApp C CXX )
 
-set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Release)
 
 #find_package( CUDA )
 find_package( OpenGL REQUIRED )
@@ -13,6 +13,7 @@ find_package( PkgConfig REQUIRED )
 pkg_search_module( GLFW REQUIRED glfw3 )
 
 set( CMAKE_CXX_STANDARD 11 )
+set( CMAKE_CXX_FLAGS_RELEASE "-O3" )
 
 include_directories( gl/ app/ /graph /lib ${GLFW_INCLUDE_DIRS} )
 link_directories( /usr/lib/ /usr/lib64/ /usr/local/lib/ )

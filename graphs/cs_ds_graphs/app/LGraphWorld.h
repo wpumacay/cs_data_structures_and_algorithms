@@ -9,10 +9,9 @@
 
 #include "../lib/delaunay.h"
 
-#ifdef USE_PARALLEL_REQUESTS
-
 #include "LPathFinder.h"
-
+#ifdef USE_PREPROCESSING
+    #include "LLandmarkPathFinder.h"
 #endif
 
 #include <iostream>
@@ -58,9 +57,13 @@ namespace app
             LPathInfo m_pInfo;
 
         #ifdef USE_PARALLEL_REQUESTS
-            LPathFinder* m_pathFinders[MAX_PARALLEL_REQUESTS];
+            LPathFinderInterface* m_pathFinders[MAX_PARALLEL_REQUESTS];
             vector<int> m_startIndxs;
             vector<int> m_endIndxs;
+        #elif defined( USE_PREPROCESSING )
+            LPathFinderInterface* m_pathFinders[1];
+        #else
+            LPathFinderInterface* m_pathFinders[1];
         #endif
 
             vector<string> split( const string &txt )
@@ -103,16 +106,26 @@ namespace app
                 initRandomGraph();
             #endif
 
-            #ifdef USE_CLUSTERING_BFS
-
-            #endif
-
             #ifdef USE_PARALLEL_REQUESTS
 
                 for ( int q = 0; q < MAX_PARALLEL_REQUESTS; q++ )
                 {
                     m_pathFinders[q] = new LPathFinder( &m_graph, q );
                 }
+
+            #elif defined( USE_PREPROCESSING )
+                cout << "????" << endl;
+                m_pathFinders[0] = new LLandmarkPathFinder( &m_graph, 0 );
+                #ifdef TEST_PRECALC
+                    cout << "precalculating ..." << endl;
+                    reinterpret_cast< LLandmarkPathFinder* >( m_pathFinders[0] )->loadLandmarks();
+                    reinterpret_cast< LLandmarkPathFinder* >( m_pathFinders[0] )->preCalc();
+                    reinterpret_cast< LLandmarkPathFinder* >( m_pathFinders[0] )->savePreCalc();
+                    cout << "done" << endl;
+                #endif
+            #else
+
+                m_pathFinders[0] = new LPathFinder( &m_graph, 0 );
 
             #endif
 
@@ -123,13 +136,16 @@ namespace app
                     m_pathFinders[q]->start_glIndx = gl::LPrimitivesRenderer2D::instance->addPoint( 1000000.0f, 1000000.0f, 1.0f, 0.0f, 0.0f );
                     m_pathFinders[q]->end_glIndx = gl::LPrimitivesRenderer2D::instance->addPoint( 1000000.0f, 1000000.0f, 1.0f, 0.0f, 0.0f );                    
 
-                    cout << "startglIndx: " << m_pathFinders[q]->start_glIndx << endl;
+                    // cout << "startglIndx: " << m_pathFinders[q]->start_glIndx << endl;
                 }
 
             #else
 
                 m_pInfo.start_glIndx = gl::LPrimitivesRenderer2D::instance->addPoint( 1000000.0f, 1000000.0f, 1.0f, 0.0f, 0.0f );
                 m_pInfo.end_glIndx = gl::LPrimitivesRenderer2D::instance->addPoint( 1000000.0f, 1000000.0f, 1.0f, 0.0f, 0.0f );
+
+                m_pathFinders[0]->start_glIndx = m_pInfo.start_glIndx;
+                m_pathFinders[0]->end_glIndx = m_pInfo.end_glIndx;
 
             #endif
             }
@@ -243,7 +259,7 @@ namespace app
                 ofstream _fileHandle ( "graph_test.txt" );
                 if ( _fileHandle.is_open() )
                 {
-                    _fileHandle << m_graph.nodes.size() << endl;
+                    _fileHandle << "POINTS " << m_graph.nodes.size() << endl;
 
                     for ( int q = 0; q < m_graph.nodes.size(); q++ )
                     {
@@ -252,8 +268,10 @@ namespace app
                         double _y = _node->y;
                         int _id = _node->id;
 
-                        _fileHandle << _id << "," << _x << "," << _y << endl;
+                        _fileHandle << _x << " " << _y << endl;
                     }
+
+                    _fileHandle << "EDGES " << "----" << endl;
 
                     for ( int q = 0; q < m_graph.nodes.size(); q++ )
                     {
@@ -261,7 +279,7 @@ namespace app
                         for ( int p = 0; p < _node->edges.size(); p++ )
                         {
                             DS::LEdge<DS::LGraph<int,double>>* _edge = _node->edges[p];
-                            _fileHandle << _edge->nodes[0]->id << "," << _edge->nodes[1]->id << endl;
+                            _fileHandle << _edge->nodes[0]->id << " " << _edge->nodes[1]->id << endl;
                         }
                     }
 
@@ -376,18 +394,8 @@ namespace app
             {
                 for ( int q = 0; q < m_startIndxs.size(); q++ )
                 {
-                    m_pathFinders[q]->launch( m_graph.nodes[m_startIndxs[q]], 
-                                              m_graph.nodes[m_endIndxs[q]] );
-                }
-
-                for ( int q = 0; q < m_startIndxs.size(); q++ )
-                {
-                    m_pathFinders[q]->join();
-                }
-
-                for ( int q = 0; q < m_startIndxs.size(); q++ )
-                {
-                    m_pathFinders[q]->reconstructPath();
+                    m_pathFinders[q]->run( m_graph.nodes[m_startIndxs[q]], 
+                                           m_graph.nodes[m_endIndxs[q]] );
                 }
             }
 
@@ -401,172 +409,7 @@ namespace app
                     return;
                 }
 
-                // Clean up
-                if ( m_pInfo.pathNode != NULL )
-                {
-                    cout << "clean previous path" << endl;
-
-                    // Change the color of the edges of the path
-                    DS::LNode<DS::LGraph<int,double>>* _node = m_pInfo.pathNode;
-                    DS::LNode<DS::LGraph<int,double>>* _node_parent = _node->parentInfo.first;
-                    DS::LEdge<DS::LGraph<int,double>>* _edge_parent = _node->parentInfo.second;
-                    while( _node_parent != NULL )
-                    {
-                        if ( _edge_parent != NULL )
-                        {
-                        #ifdef USE_BATCH_RENDER
-                            gl::LPrimitivesRenderer2D::instance->updateSwarmLineColor( m_graph.edges_glIndx, 
-                                                                                       _edge_parent->glIndx,
-                                                                                       1.0f, 1.0f, 1.0f );
-                        #else
-                            gl::LPrimitivesRenderer2D::instance->updateLineColor( _edge_parent->glIndx, 1.0f, 1.0f, 1.0f );
-                        #endif
-                        }
-                        _node = _node_parent;
-                        _node_parent = _node_parent->parentInfo.first;
-                        if ( _node_parent != NULL )
-                        {
-                            _edge_parent = _node_parent->parentInfo.second;
-                        }
-                    }
-                }
-
-
-                map<int,DS::LNode<DS::LGraph<int,double>>* > _explored;
-                map<int,DS::LNode<DS::LGraph<int,double>>* > _toExplore;
-                _toExplore[m_pInfo.start->id] = m_pInfo.start;
-
-                // Calculate the first heuristic value
-                double _dx = m_pInfo.start->x - m_pInfo.end->x;
-                double _dy = m_pInfo.start->y - m_pInfo.end->y;
-                double _h = sqrt( _dx * _dx + _dy * _dy );
-                m_pInfo.start->g = 0;
-                m_pInfo.start->h = _h;
-                m_pInfo.start->f = _h;
-                //m_pInfo.start->parent = NULL;
-                m_pInfo.start->parentInfo.first = NULL;
-                m_pInfo.start->parentInfo.second = NULL;
-
-                bool found = false;
-                DS::LNode<DS::LGraph<int, double>>* _pathNode = NULL;
-
-                int _opCount = 0;
-
-                while ( !_toExplore.empty() )
-                {
-                    DS::LNode<DS::LGraph<int,double>>* _bestCandidate = NULL;
-
-                    map<int,DS::LNode<DS::LGraph<int,double>>* >::iterator _it;
-
-                    for ( _it = _toExplore.begin(); _it != _toExplore.end(); ++_it )
-                    {
-                        DS::LNode<DS::LGraph<int,double>>* _toExplore_candidate = _it->second;
-                        if ( _bestCandidate == NULL )
-                        {
-                            _bestCandidate = _toExplore_candidate;
-                        }
-                        else if ( _toExplore_candidate->f < _bestCandidate->f )
-                        {
-                            _bestCandidate = _toExplore_candidate;
-                        }
-                    }
-                    DS::LNode<DS::LGraph<int,double>>* _nextToExplore = _bestCandidate;
-                    _toExplore.erase( _bestCandidate->id );
-                    // Expand this node
-                    _explored[_nextToExplore->id] = _nextToExplore;
-
-                    for ( int q = 0; q < _nextToExplore->edges.size(); q++ )
-                    {
-                        DS::LEdge<DS::LGraph<int,double>>* _edge = _nextToExplore->edges[q];
-                        DS::LNode<DS::LGraph<int,double>>* _successor = _edge->nodes[1];
-
-                    #ifdef USE_BATCH_RENDER
-                        gl::LPrimitivesRenderer2D::instance->updateSwarmLineColor( m_graph.edges_glIndx,
-                                                                                   _edge->glIndx, 
-                                                                                   0.0f, 0.0f, 1.0f );
-                    #else
-                        gl::LPrimitivesRenderer2D::instance->updateLineColor( _edge->glIndx, 0.0f, 0.0f, 1.0f );
-                    #endif
-
-                        if ( _explored.find( _successor->id ) != _explored.end() )
-                        {
-                            // Already explored, don't count it
-                            continue;
-                        }
-
-                        if ( _toExplore.find( _successor->id ) != _toExplore.end() )
-                        {
-                            continue;
-                        }
-
-                        //_successor->parent = _nextToExplore;
-                        _successor->parentInfo.first = _nextToExplore;
-                        _successor->parentInfo.second = _edge;
-
-                        if ( _successor == m_pInfo.end )
-                        {
-                            found = true;
-                            _pathNode = _successor;
-                            break;
-                        }
-
-                        double dx = _successor->x - m_pInfo.end->x;
-                        double dy = _successor->y - m_pInfo.end->y;
-                        double dist = sqrt( dx * dx + dy * dy );
-                        _successor->g = _nextToExplore->g + _edge->data;
-                        _successor->h = dist;
-                        _successor->f = _successor->g + _successor->h;
-
-                        _toExplore[_successor->id] = _successor;
-
-                        _opCount++;
-                        // cout << "opCount: " << _opCount << endl;
-                        // cout << "_toExplore: " << _toExplore.size() << endl;
-                    }
-
-                    if ( found )
-                    {
-                        break;
-                    }
-                }
-
-                if ( _pathNode != NULL )
-                {
-                    cout << "found path" << endl;
-                    m_pInfo.pathNode = _pathNode;
-
-                    // Change the color of the edges of the path
-                    DS::LNode<DS::LGraph<int,double>>* _node = m_pInfo.pathNode;
-                    DS::LNode<DS::LGraph<int,double>>* _node_parent = _node->parentInfo.first;
-                    DS::LEdge<DS::LGraph<int,double>>* _edge_parent = _node->parentInfo.second;
-                    while( _node_parent != NULL )
-                    {
-                        if ( _edge_parent != NULL )
-                        {
-                        #ifdef USE_BATCH_RENDER
-                            gl::LPrimitivesRenderer2D::instance->updateSwarmLineColor( m_graph.edges_glIndx,
-                                                                                       _edge_parent->glIndx, 
-                                                                                       0.0f, 1.0f, 0.0f );
-                        #else
-                            gl::LPrimitivesRenderer2D::instance->updateLineColor( _edge_parent->glIndx, 0.0f, 1.0f, 0.0f );
-                        #endif
-                        }
-                        _node = _node_parent;
-                        _node_parent = _node_parent->parentInfo.first;
-                        if ( _node_parent != NULL )
-                        {
-                            _edge_parent = _node_parent->parentInfo.second;
-                        }
-                    }
-
-                    cout << "opCount: " << _opCount << endl;
-                }
-                else
-                {
-                    cout << "not found" << endl;
-                }
-
-
+                m_pathFinders[0]->run( m_pInfo.start, m_pInfo.end );
             }
 
         #endif
@@ -574,6 +417,15 @@ namespace app
             void update( float dt )
             {
                 m_camera->update( dt );
+
+            #ifdef USE_PARALLEL_REQUESTS
+                for ( int q = 0; q < MAX_PARALLEL_REQUESTS; q++ )
+                {
+                    m_pathFinders[q]->update( dt );
+                }
+            #else
+                m_pathFinders[0]->update( dt );
+            #endif
             }
 
 
@@ -639,13 +491,21 @@ namespace app
                     float dist = sqrt( dx * dx + dy * dy );
                     if ( dist < RANGE_PICK )
                     {
+                    #ifdef TEST_PICK_LANDMARKS
+                            
+                            cout << "id picked: " << _node->id << endl;
+                            gl::LPrimitivesRenderer2D::instance->updatePoint( m_pathFinders[0]->start_glIndx,
+                                                                              _node->x,
+                                                                              _node->y );
+                            return;
+                    #endif
                         if ( m_pInfo.start != NULL )
                         {
                             if ( m_pInfo.start == _node )
                             {
                                 continue;
                             }
-                            cout << "picked end" << endl;
+                            cout << "picked end " << _node->id << endl;
                             m_pInfo.end = _node;
 
                         #ifdef USE_PARALLEL_REQUESTS
@@ -709,7 +569,7 @@ namespace app
                         }
                         else
                         {
-                            cout << "picked start" << endl;
+                            cout << "picked start " << _node->id << endl;
                             // Clean everything
                             for ( int p = 0; p < m_graph.nodes.size(); p++ )
                             {

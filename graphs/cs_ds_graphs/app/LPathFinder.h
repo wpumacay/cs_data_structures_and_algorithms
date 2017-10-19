@@ -14,26 +14,10 @@ namespace app
 	{
 
 
-		class LPathFinder
+		class LPathFinder : public LPathFinderInterface
 		{
 
-			private :
-
-			DS::LGraph<int, double>* m_graphRef;
-			pthread_t m_threadHandle;
-
-			DS::LNode<DS::LGraph<int, double> >* m_start;
-			DS::LNode<DS::LGraph<int, double> >* m_end;
-			DS::LNode<DS::LGraph<int, double> >* m_pathNode;
-
-			LPathFinderWorkData m_wData;
-
 			public :
-
-			int start_glIndx;
-			int end_glIndx;
-			int id;
-			bool isRunning;
 
 			LPathFinder( DS::LGraph<int, double>* pGraph, int pId )
 			{
@@ -48,80 +32,9 @@ namespace app
 				end_glIndx = -1;
 			}
 
-			virtual void launch( DS::LNode<DS::LGraph<int, double> >* pStart,
-								 DS::LNode<DS::LGraph<int, double> >* pEnd )
+			void launch() override
 			{
-				m_start = pStart;
-				m_end = pEnd;
-
-				// Do some cleanup before calculating the path
-                if ( m_pathNode != NULL )
-                {
-                    cout << "clean previous path from pathfinder " << this->id << endl;
-
-                    // Change the color of the edges of the path
-                    DS::LNode<DS::LGraph<int,double>>* _node = m_pathNode;
-                    DS::LNode<DS::LGraph<int,double>>* _node_parent = _node->parentInfo[this->id].first;
-                    DS::LEdge<DS::LGraph<int,double>>* _edge_parent = _node->parentInfo[this->id].second;
-                    while( _node_parent != NULL )
-                    {
-                        _node = _node_parent;
-                        _node_parent = _node_parent->parentInfo[this->id].first;
-                        if ( _node_parent != NULL )
-                        {
-                            _edge_parent = _node_parent->parentInfo[this->id].second;
-                        }
-                    }
-
-                    m_pathNode = NULL;
-                }
-
-				// prepare threads and launch them
-				m_wData.start = m_start;
-				m_wData.end = m_end;
-				m_wData.pathNode = m_pathNode;
-				m_wData.id = this->id;
-
-				this->isRunning = true;
-
 				pthread_create( &m_threadHandle, NULL, LPathFinder::calculatePath, ( void* ) &m_wData );
-
-			}
-
-			void join()
-			{
-				pthread_join( m_threadHandle, ( void** )&m_pathNode );
-			}
-
-			void reconstructPath()
-			{
-                if ( m_pathNode != NULL )
-                {
-                    // Change the color of the edges of the path
-                    DS::LNode<DS::LGraph<int,double>>* _node = m_pathNode;
-                    DS::LNode<DS::LGraph<int,double>>* _node_parent = _node->parentInfo[this->id].first;
-                    DS::LEdge<DS::LGraph<int,double>>* _edge_parent = _node->parentInfo[this->id].second;
-                    while( _node_parent != NULL )
-                    {
-                        if ( _edge_parent != NULL )
-                        {
-                        #ifdef USE_BATCH_RENDER
-                            gl::LPrimitivesRenderer2D::instance->updateSwarmLineColor( m_graphRef->edges_glIndx,
-                                                                                       _edge_parent->glIndx, 
-                                                                                       0.0f, 1.0f, 0.0f );
-                        #else
-                            gl::LPrimitivesRenderer2D::instance->updateLineColor( _edge_parent->glIndx, 0.0f, 1.0f, 0.0f );
-                        #endif
-                        }
-                        _node = _node_parent;
-                        _node_parent = _node_parent->parentInfo[this->id].first;
-                        if ( _node_parent != NULL )
-                        {
-                            _edge_parent = _node_parent->parentInfo[this->id].second;
-                        }
-                    }
-
-                }
 			}
 
 			static void* calculatePath( void* pWorkData )
@@ -129,8 +42,13 @@ namespace app
 				LPathFinderWorkData* _wData = ( LPathFinderWorkData* ) pWorkData;
 
                 map<int,DS::LNode<DS::LGraph<int,double>>* > _explored;
+            #ifdef A_STAR_USE_PRIORITY_QUEUE
+                LNodePriorityQueue _toExplore;
+                _toExplore.push( _wData->start );
+            #else
                 map<int,DS::LNode<DS::LGraph<int,double>>* > _toExplore;
                 _toExplore[_wData->start->id] = _wData->start;
+            #endif
 
                 // Calculate the first heuristic value
                 double _dx = _wData->start->x - _wData->end->x;
@@ -150,6 +68,13 @@ namespace app
 
                 while ( !_toExplore.empty() )
                 {
+
+                #ifdef A_STAR_USE_PRIORITY_QUEUE
+
+                    DS::LNode<DS::LGraph<int,double>>* _nextToExplore = _toExplore.top();
+                    _toExplore.pop();
+
+                #else
                     DS::LNode<DS::LGraph<int,double>>* _bestCandidate = NULL;
 
                     map<int,DS::LNode<DS::LGraph<int,double>>* >::iterator _it;
@@ -166,8 +91,11 @@ namespace app
                             _bestCandidate = _toExplore_candidate;
                         }
                     }
+
                     DS::LNode<DS::LGraph<int,double>>* _nextToExplore = _bestCandidate;
                     _toExplore.erase( _bestCandidate->id );
+
+                #endif
                     // Expand this node
                     _explored[_nextToExplore->id] = _nextToExplore;
 
@@ -176,16 +104,30 @@ namespace app
                         DS::LEdge<DS::LGraph<int,double>>* _edge = _nextToExplore->edges[q];
                         DS::LNode<DS::LGraph<int,double>>* _successor = _edge->nodes[1];
 
+                    #ifdef USE_BATCH_RENDER
+                        gl::LPrimitivesRenderer2D::instance->updateSwarmLineColor( _wData->graphRef->edges_glIndx,
+                                                                                   _edge->glIndx, 
+                                                                                   0.0f, 0.0f, 1.0f );
+                    #else
+                        gl::LPrimitivesRenderer2D::instance->updateLineColor( _edge->glIndx, 0.0f, 0.0f, 1.0f );
+					#endif
+
                         if ( _explored.find( _successor->id ) != _explored.end() )
                         {
                             // Already explored, don't count it
                             continue;
                         }
-
+                    #ifndef A_STAR_USE_PRIORITY_QUEUE
                         if ( _toExplore.find( _successor->id ) != _toExplore.end() )
                         {
                             continue;
                         }
+                    #else
+                        if ( _successor->inOpen )
+                        {
+                            continue;
+                        }
+                    #endif
 
                         //_successor->parent = _nextToExplore;
                         _successor->parentInfo[_wData->id].first = _nextToExplore;
@@ -204,8 +146,15 @@ namespace app
                         _successor->g = _nextToExplore->g + _edge->data;
                         _successor->h = dist;
                         _successor->f = _successor->g + _successor->h;
-
+                    #ifdef A_STAR_USE_PRIORITY_QUEUE
+                        //if ( !_successor->inOpen )
+                        {
+                            _successor->inOpen = true;
+                            _toExplore.push( _successor );
+                        }
+                    #else
                         _toExplore[_successor->id] = _successor;
+                    #endif
 
                         _opCount++;
                     }
@@ -222,17 +171,16 @@ namespace app
                     _wData->pathNode = _pathNode;
                     cout << "opCount: " << _opCount << endl;
 
+                   	_wData->working = 0;
+
                     return ( void* ) _pathNode;
                 }
                 
 				cout << "not found" << endl;
+				_wData->working = 0;
+
                 return NULL;
 
-			}
-
-			DS::LNode<DS::LGraph<int, double> >* pathNode()
-			{
-				return m_pathNode;
 			}
 
 

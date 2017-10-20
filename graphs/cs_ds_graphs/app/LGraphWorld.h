@@ -114,13 +114,22 @@ namespace app
                 }
 
             #elif defined( USE_PREPROCESSING )
-                cout << "????" << endl;
+                cout << "using preprocessing" << endl;
                 m_pathFinders[0] = new LLandmarkPathFinder( &m_graph, 0 );
                 #ifdef TEST_PRECALC
                     cout << "precalculating ..." << endl;
+
                     reinterpret_cast< LLandmarkPathFinder* >( m_pathFinders[0] )->loadLandmarks();
                     reinterpret_cast< LLandmarkPathFinder* >( m_pathFinders[0] )->preCalc();
                     reinterpret_cast< LLandmarkPathFinder* >( m_pathFinders[0] )->savePreCalc();
+
+                    cout << "done" << endl;
+                #else
+                    cout << "starting" << endl;
+
+                    reinterpret_cast< LLandmarkPathFinder* >( m_pathFinders[0] )->loadLandmarks();
+                    reinterpret_cast< LLandmarkPathFinder* >( m_pathFinders[0] )->loadPreCalc();
+
                     cout << "done" << endl;
                 #endif
             #else

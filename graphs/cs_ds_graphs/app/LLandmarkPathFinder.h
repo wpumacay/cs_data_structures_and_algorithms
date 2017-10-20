@@ -27,6 +27,32 @@ namespace app
 
             vector<float> m_preCalc[NUM_LANDMARKS];
 
+            vector<string> split( const string &txt )
+            {
+                vector<string> _res;
+                
+                int pos = txt.find( ' ' );
+                if ( pos == std::string::npos )
+                {
+                    _res.push_back( txt );
+                    return _res;
+                }
+
+                int initpos = 0;
+
+                while ( pos != std::string::npos )
+                {
+                    _res.push_back( txt.substr( initpos, pos - initpos + 1 ) );
+                    initpos = pos + 1;
+
+                    pos = txt.find( ',', initpos );
+                }
+
+                _res.push_back( txt.substr( initpos, std::min( pos, (int) txt.size() ) - initpos + 1 ) );
+                
+                return _res;
+            }
+
             public :
 
             LLandmarkPathFinder( DS::LGraph<int, double>* pGraph, int pId )
@@ -169,7 +195,45 @@ namespace app
 
             void loadPreCalc()
             {
+                cout << "loading precalc" << endl;
 
+                for ( int q = 0; q < NUM_LANDMARKS; q++ )
+                {
+                    m_preCalc[q].clear();
+                }
+
+                ifstream _fileHandle ( USE_SAVED_GRAPH_PRECALC );
+
+                if ( _fileHandle.is_open() )
+                {
+                    string _line;
+
+                    for ( int q = 0; q < NUM_LANDMARKS; q++ )
+                    {
+                        getline( _fileHandle, _line ); // line containing the landmark id
+                        vector<string> _strLandmark = split( _line );
+                        int _lID = stoi( _strLandmark[1] );
+                        if ( _lID != m_landmarkIDs[q] )
+                        {
+                            cout << "failure loading - landmarks mismatch" << endl;
+                            return;
+                        }
+                        cout << "loading landmark " << q << endl;
+
+                        for ( int n = 0; n < m_graphRef->nodes.size(); n++ )
+                        {
+                            getline( _fileHandle, _line );
+                            vector<string> _strCalc = split( _line );
+                            int _nId = stoi( _strCalc[0] );
+                            float _nDist = stof( _strCalc[1] );
+
+                            m_preCalc[q].push_back( _nDist );
+                        }
+                    }
+                }
+
+
+                cout << "done" << endl;
             }
 
             void launch() override
@@ -184,7 +248,8 @@ namespace app
             {
                 LPathFinderWorkData* _wData = ( LPathFinderWorkData* ) pWorkData;
 
-                unordered_map<int,DS::LNode<DS::LGraph<int,double>>* > _explored;
+                //unordered_map<int,DS::LNode<DS::LGraph<int,double>>* > _explored;
+                unordered_map<int,float> _costSoFar;
 
                 LNodePriorityQueue _toExplore;
                 _toExplore.push( _wData->start );
@@ -224,7 +289,7 @@ namespace app
                     _toExplore.pop();
 
                     // Expand this node
-                    _explored[_nextToExplore->id] = _nextToExplore;
+                    //_explored[_nextToExplore->id] = _nextToExplore;
 
                     for ( int q = 0; q < _nextToExplore->edges.size(); q++ )
                     {
@@ -239,50 +304,48 @@ namespace app
                         gl::LPrimitivesRenderer2D::instance->updateLineColor( _edge->glIndx, 0.0f, 0.0f, 1.0f );
                     #endif
 
-                        if ( _explored.find( _successor->id ) != _explored.end() )
-                        {
-                            // Already explored, don't count it
-                            continue;
-                        }
-
-                        if ( _successor->inOpen )
-                        {
-                            continue;
-                        }
-
-                        //_successor->parent = _nextToExplore;
-                        _successor->parentInfo[_wData->id].first = _nextToExplore;
-                        _successor->parentInfo[_wData->id].second = _edge;
-
                         if ( _successor == _wData->end )
                         {
+                            _successor->parentInfo[_wData->id].first = _nextToExplore;
+                            _successor->parentInfo[_wData->id].second = _edge;
                             found = true;
                             _pathNode = _successor;
                             break;
                         }
 
-                        float dx = _successor->x - _wData->end->x;
-                        float dy = _successor->y - _wData->end->y;
-                        float dist = sqrt( dx * dx + dy * dy );
-                        _successor->g = _nextToExplore->g + _edge->data;
-                        //cout << "dist: " << dist << endl;
-                        for ( int l = 0; l < NUM_LANDMARKS; l++ )
+                        float _g = _nextToExplore->g + _edge->data;
+                        if ( _costSoFar.find( _successor->id ) == _costSoFar.end() ||
+                             _g < _costSoFar[_successor->id] )
                         {
-                            if ( _successor->id == _wData->pLandmarkIDs[l] )
-                            {
-                                continue;
-                            }
-                            float dt = _wData->pPreCalc[l][_wData->end->id];
-                            float dv = _wData->pPreCalc[l][_successor->id];
+                            float dx = _successor->x - _wData->end->x;
+                            float dy = _successor->y - _wData->end->y;
+                            float _h = sqrt( dx * dx + dy * dy );
 
-                            //cout << "abs( dt - dv ) : " << abs( dt - dv ) << endl;
-                            dist = max( abs( dt - dv ), dist );
+                            for ( int l = 0; l < NUM_LANDMARKS; l++ )
+                            {
+                                if ( _successor->id == _wData->pLandmarkIDs[l] )
+                                {
+                                    continue;
+                                }
+                                float dt = _wData->pPreCalc[l][_wData->end->id];
+                                float dv = _wData->pPreCalc[l][_successor->id];
+
+                                _h = max( abs( dt - dv ), _h );
+                            }
+
+                            float _f = _g + _h;
+
+                            _successor->g = _g;
+                            _successor->h = _h;
+                            _successor->f = _f;
+
+                            _successor->inOpen = true;
+                            _toExplore.push( _successor );
+                            _costSoFar[_successor->id] = _g;
+
+                            _successor->parentInfo[_wData->id].first = _nextToExplore;
+                            _successor->parentInfo[_wData->id].second = _edge;
                         }
-                        _successor->h = dist;
-                        //cout << "fdist: " << dist << endl;
-                        _successor->f = _successor->g + _successor->h;
-                        _successor->inOpen = true;
-                        _toExplore.push( _successor );
 
                         _opCount++;
                     }

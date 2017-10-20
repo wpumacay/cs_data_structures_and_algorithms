@@ -72,19 +72,29 @@ namespace app
                 {
                     cout << "clean previous path from pathfinder " << this->id << endl;
 
-                    // Change the color of the edges of the path
-                    DS::LNode<DS::LGraph<int,double>>* _node = m_pathNode;
-                    DS::LNode<DS::LGraph<int,double>>* _node_parent = _node->parentInfo[this->id].first;
-                    DS::LEdge<DS::LGraph<int,double>>* _edge_parent = _node->parentInfo[this->id].second;
-                    while( _node_parent != NULL )
-                    {
-                        _node = _node_parent;
-                        _node_parent = _node_parent->parentInfo[this->id].first;
-                        if ( _node_parent != NULL )
-                        {
-                            _edge_parent = _node_parent->parentInfo[this->id].second;
-                        }
-                    }
+                   	for ( int q = 0; q < m_graphRef->nodes.size(); q++ )
+                   	{
+                   		m_graphRef->nodes[q]->parentInfo[this->id].first = NULL;
+                   		m_graphRef->nodes[q]->parentInfo[this->id].second = NULL;
+                   	}
+
+                    // // Change the color of the edges of the path
+                    // DS::LNode<DS::LGraph<int,double>>* _node = m_pathNode;
+                    // DS::LNode<DS::LGraph<int,double>>* _node_parent = _node->parentInfo[this->id].first;
+                    // DS::LEdge<DS::LGraph<int,double>>* _edge_parent = _node->parentInfo[this->id].second;
+                    // while( _node_parent != NULL )
+                    // {
+                    //     _node = _node_parent;
+                    //     _node_parent = _node_parent->parentInfo[this->id].first;
+                    //     if ( _node_parent != NULL )
+                    //     {
+                    //         _edge_parent = _node_parent->parentInfo[this->id].second;
+                    //     }
+                    //     if ( _node->id == m_start->id )
+                    //     {
+                    //     	break;
+                    //     }
+                    // }
 
                     m_pathNode = NULL;
                 }
@@ -156,6 +166,11 @@ namespace app
                         }
 
                         _node = _node->parentInfo[this->id].first;
+
+                        if ( _node->id == m_start->id )
+                        {
+                        	break;
+                        }
                     }
 
                     cout << "path length: " << m_dist << endl;

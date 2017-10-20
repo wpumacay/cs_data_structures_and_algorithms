@@ -26,21 +26,21 @@
 
 //#define USE_LIGHT_MODE_ONLY 1
 #define USE_SAVED_GRAPH 1
-#define USE_SAVED_GRAPH_PATH "res/1000000points.data"
+#define USE_SAVED_GRAPH_PATH "res/10000points.data"
 //#define USE_PARALLEL_REQUESTS 1
 	#define MAX_PARALLEL_REQUESTS 3
 	#define MAX_RANGE_SEARCH 50
 
 #define INF 1000000.0f
-//#define USE_PREPROCESSING 1
-	#define USE_SAVED_GRAPH_LANDMARKS "res/landmarks/1000000points_landmarks.data"
-	#define USE_SAVED_GRAPH_PRECALC   "res/preprocessing/1000000points_preprocessing.data"
+#define USE_PREPROCESSING 1
+	#define USE_SAVED_GRAPH_LANDMARKS "res/landmarks/10000points_landmarks.data"
+	#define USE_SAVED_GRAPH_PRECALC   "res/preprocessing/10000points_preprocessing.data"
 	#define NUM_LANDMARKS 16
 	//#define LANDMARK_GENERATION_FARTHEST 1
 	//#define LANDMARK_GENERATION_OPTIMIZED 1
 
 //#define TEST_PICK_LANDMARKS 1
-#define TEST_PRECALC 1
+//#define TEST_PRECALC 1
 
 #define A_STAR_USE_PRIORITY_QUEUE 1
 

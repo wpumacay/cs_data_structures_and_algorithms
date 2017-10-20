@@ -41,7 +41,8 @@ namespace app
 			{
 				LPathFinderWorkData* _wData = ( LPathFinderWorkData* ) pWorkData;
 
-                unordered_map<int,DS::LNode<DS::LGraph<int,double>>* > _explored;
+                //unordered_map<int,DS::LNode<DS::LGraph<int,double>>* > _explored;
+                unordered_map<int,float> _costSoFar;
 
                 LNodePriorityQueue _toExplore;
                 _toExplore.push( _wData->start );
@@ -61,6 +62,7 @@ namespace app
                 DS::LNode<DS::LGraph<int, double>>* _pathNode = NULL;
 
                 int _opCount = 0;
+                _costSoFar[_wData->start->id] = _wData->start->g;
 
                 while ( !_toExplore.empty() )
                 {
@@ -69,7 +71,7 @@ namespace app
                     _toExplore.pop();
 
                     // Expand this node
-                    _explored[_nextToExplore->id] = _nextToExplore;
+                    //_explored[_nextToExplore->id] = _nextToExplore;
 
                     for ( int q = 0; q < _nextToExplore->edges.size(); q++ )
                     {
@@ -86,25 +88,30 @@ namespace app
 
                         if ( _successor == _wData->end )
                         {
+                            _successor->parentInfo[_wData->id].first = _nextToExplore;
+                            _successor->parentInfo[_wData->id].second = _edge;
                             found = true;
                             _pathNode = _successor;
                             break;
                         }
 
-                        float dx = _successor->x - _wData->end->x;
-                        float dy = _successor->y - _wData->end->y;
-                        float dist = sqrt( dx * dx + dy * dy );
                         float _g = _nextToExplore->g + _edge->data;
 
-                        if ( _explored.find( _successor->id ) == _explored.end() ||
-                             ( _g < _successor->g && _successor->inOpen == false ) )
+                        if ( _costSoFar.find( _successor->id ) == _costSoFar.end() ||
+                             _g < _costSoFar[_successor->id] )
                         {
-                            float _h = dist;
+                            float dx = _successor->x - _wData->end->x;
+                            float dy = _successor->y - _wData->end->y;
+                            float _h = sqrt( dx * dx + dy * dy );
                             float _f = _g + _h;
+
+                            _successor->g = _g;
+                            _successor->h = _h;
                             _successor->f = _f;
 
                             _successor->inOpen = true;
                             _toExplore.push( _successor );
+                            _costSoFar[_successor->id] = _g;
 
                             _successor->parentInfo[_wData->id].first = _nextToExplore;
                             _successor->parentInfo[_wData->id].second = _edge;

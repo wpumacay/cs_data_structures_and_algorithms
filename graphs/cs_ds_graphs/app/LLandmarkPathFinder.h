@@ -184,14 +184,10 @@ namespace app
             {
                 LPathFinderWorkData* _wData = ( LPathFinderWorkData* ) pWorkData;
 
-                map<int,DS::LNode<DS::LGraph<int,double>>* > _explored;
-            #ifdef A_STAR_USE_PRIORITY_QUEUE
+                unordered_map<int,DS::LNode<DS::LGraph<int,double>>* > _explored;
+
                 LNodePriorityQueue _toExplore;
                 _toExplore.push( _wData->start );
-            #else
-                map<int,DS::LNode<DS::LGraph<int,double>>* > _toExplore;
-                _toExplore[_wData->start->id] = _wData->start;
-            #endif
 
                 // Calculate the first heuristic value
                 float _dx = _wData->start->x - _wData->end->x;
@@ -223,33 +219,10 @@ namespace app
 
                 while ( !_toExplore.empty() )
                 {
-                #ifdef A_STAR_USE_PRIORITY_QUEUE
 
                     DS::LNode<DS::LGraph<int,double>>* _nextToExplore = _toExplore.top();
                     _toExplore.pop();
 
-                #else
-                    DS::LNode<DS::LGraph<int,double>>* _bestCandidate = NULL;
-
-                    map<int,DS::LNode<DS::LGraph<int,double>>* >::iterator _it;
-
-                    for ( _it = _toExplore.begin(); _it != _toExplore.end(); ++_it )
-                    {
-                        DS::LNode<DS::LGraph<int,double>>* _toExplore_candidate = _it->second;
-                        if ( _bestCandidate == NULL )
-                        {
-                            _bestCandidate = _toExplore_candidate;
-                        }
-                        else if ( _toExplore_candidate->f < _bestCandidate->f )
-                        {
-                            _bestCandidate = _toExplore_candidate;
-                        }
-                    }
-
-                    DS::LNode<DS::LGraph<int,double>>* _nextToExplore = _bestCandidate;
-                    _toExplore.erase( _bestCandidate->id );
-
-                #endif
                     // Expand this node
                     _explored[_nextToExplore->id] = _nextToExplore;
 
@@ -272,18 +245,10 @@ namespace app
                             continue;
                         }
 
-                    #ifndef A_STAR_USE_PRIORITY_QUEUE
-                        if ( _toExplore.find( _successor->id ) != _toExplore.end() )
-                        {
-                            continue;
-                        }
-
-                    #else
                         if ( _successor->inOpen )
                         {
                             continue;
                         }
-                    #endif
 
                         //_successor->parent = _nextToExplore;
                         _successor->parentInfo[_wData->id].first = _nextToExplore;
@@ -316,16 +281,8 @@ namespace app
                         _successor->h = dist;
                         //cout << "fdist: " << dist << endl;
                         _successor->f = _successor->g + _successor->h;
-
-                    #ifdef A_STAR_USE_PRIORITY_QUEUE
-                        //if ( !_successor->inOpen )
-                        //{
-                            _successor->inOpen = true;
-                            _toExplore.push( _successor );
-                        //}
-                    #else
-                        _toExplore[_successor->id] = _successor;
-                    #endif
+                        _successor->inOpen = true;
+                        _toExplore.push( _successor );
 
                         _opCount++;
                     }

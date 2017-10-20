@@ -10,7 +10,7 @@ using namespace std;
 #define SWARM_POINT_SIZE 0.010f
 
 #define SWARM_MIN_SIDES 3
-#define SWARM_MAX_SIDES 20
+#define SWARM_MAX_SIDES 10
 
 namespace engine
 {
@@ -76,7 +76,8 @@ namespace engine
 				GLuint u_cRadius = glGetUniformLocation( programId, "u_cRadius" );
 				GLuint u_cSides = glGetUniformLocation( programId, "u_cSides" );
 
-				glUniform1f( u_cRadius, SWARM_POINT_SIZE );
+				//glUniform1f( u_cRadius, SWARM_POINT_SIZE );
+				glUniform1f( u_cRadius, ( 0.1 + 0.9 * ( ( rInfo.cameraZoom - 0.2 ) / 9.8 ) ) * SWARM_POINT_SIZE );
 				glUniform1i( u_cSides, SWARM_MAX_SIDES );
 
 				glDrawArrays( GL_POINTS, 0, m_numVertices );

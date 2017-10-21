@@ -55,8 +55,8 @@ namespace engine
 
             virtual void createWorld();
 
-            void initialize();
-            void loop();
+            virtual void initialize();
+            virtual void loop();
             void finalize();
 
             int width()

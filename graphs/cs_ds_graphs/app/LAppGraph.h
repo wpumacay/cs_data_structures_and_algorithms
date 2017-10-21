@@ -4,6 +4,8 @@
 #include "../gl/LApp.h"
 #include "LGraphWorld.h"
 
+#include <nanogui/nanogui.h>
+
 
 namespace app
 {
@@ -13,6 +15,11 @@ namespace app
 
 		class LAppGraph : public engine::gl::LApp
 		{
+
+			private :
+
+			nanogui::Screen* m_uiScreen;
+			nanogui::FormHelper* m_uiForm;
 
 			public :
 

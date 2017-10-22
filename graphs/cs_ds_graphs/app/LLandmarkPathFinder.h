@@ -338,8 +338,7 @@ namespace app
                             _successor->g = _g;
                             _successor->h = _h;
                             _successor->f = _f;
-
-                            _successor->inOpen = true;
+                            
                             _toExplore.push( _successor );
                             _costSoFar[_successor->id] = _g;
 

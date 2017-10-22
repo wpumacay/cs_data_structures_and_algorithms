@@ -79,11 +79,29 @@ namespace engine
                 return m_world;
             }
 
+            virtual void onKeyCallback( int pKey, int pScancode, 
+                                        int pAction, int pMode )
+            {
+                // override this
+            }
+
+            virtual void onMouseButtonCallback( int pButton, int pAction, int pMods )
+            {
+                // override this
+            }
+
+            virtual void onCursorCallback( double x, double y )
+            {
+                // override this
+            }
+
             static void onKeyEvent( GLFWwindow* pWindow, int pKey, int pScancode, 
                                     int pAction, int pMode );
 
             static void onMouseEvent( GLFWwindow* pWindow, int pButton, 
                                       int pAction, int pMods );
+
+            static void onCursorPosEvent( GLFWwindow* pWindow, double x, double y );
 
             static void onScrollEvent( GLFWwindow* pWindow, double xOff, double yOff );
         };

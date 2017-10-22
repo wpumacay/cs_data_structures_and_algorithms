@@ -8,7 +8,7 @@
 // render to use
 //#define RENDER_QT 1
 
-
+//#define ENABLE_UI 1
 
 // NUMBER OF RANDOM NODES IN THE GRAPH
 #define NUM_GRAPH_NODES 1000000
@@ -27,12 +27,12 @@
 //#define USE_LIGHT_MODE_ONLY 1
 #define USE_SAVED_GRAPH 1
 #define USE_SAVED_GRAPH_PATH "res/10000points.data"
-//#define USE_PARALLEL_REQUESTS 1
+#define USE_PARALLEL_REQUESTS 1
 	#define MAX_PARALLEL_REQUESTS 3
 	#define MAX_RANGE_SEARCH 50
 
 #define INF 1000000.0f
-#define USE_PREPROCESSING 1
+//#define USE_PREPROCESSING 1
 	#define USE_SAVED_GRAPH_LANDMARKS "res/landmarks/10000points_landmarks.data"
 	#define USE_SAVED_GRAPH_PRECALC   "res/preprocessing/10000points_preprocessing.data"
 	#define NUM_LANDMARKS 16

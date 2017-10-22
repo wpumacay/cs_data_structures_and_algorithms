@@ -20,6 +20,29 @@ namespace app
 	namespace graph
 	{
 
+        struct LPair
+        {
+            DS::LNode<DS::LGraph<int, double> >* node;
+            float f;
+        };
+
+        struct LPathInfo
+        {
+            DS::LNode<DS::LGraph<int, double> >* start;
+            int start_glIndx;
+            DS::LNode<DS::LGraph<int, double> >* end;
+            int end_glIndx;
+            DS::LNode<DS::LGraph<int, double> >* pathNode;
+
+            LPathInfo()
+            {
+                this->start = NULL;
+                this->end = NULL;
+                this->start_glIndx = -1;
+                this->end_glIndx = -1;
+                this->pathNode = NULL;
+            }
+        };
 
         struct LPathFinderWorkData
         {
@@ -33,11 +56,20 @@ namespace app
             int* pLandmarkIDs;
         };
 
+        struct LPairComparator
+        {
+            inline bool operator() ( const LPair& lhs,
+                                     const LPair& rhs )
+            {
+                return lhs->f > rhs->f;
+            }
+        };
+
         struct LNodeComparator
         {
 
         	inline bool operator() ( const DS::LNode< DS::LGraph<int, double> >* lhs, 
-        					  const DS::LNode< DS::LGraph<int, double> >* rhs )
+        					         const DS::LNode< DS::LGraph<int, double> >* rhs )
         	{
         		return lhs->f > rhs->f;
         	}
@@ -61,6 +93,19 @@ namespace app
                                      std::vector< DS::LNode< DS::LGraph<int, double> >* >,
                                      LNodeComparatorDijkstra > LNodePriorityQueueDijkstra;
 
+        typedef std::priority_queue< LPair, 
+                                     std::vector< LPair >, 
+                                     LPairComparator > LPairPriorityQueue;
+
+        namespace finderType
+        {
+            enum _finderType
+            {
+                SEARCH_DIJKSTRA,
+                SEARCH_A_STAR,
+                SEARCH_A_STAR_LANDMARKS
+            };
+        }
 
         class LNodeVectPriorityQueue
         {

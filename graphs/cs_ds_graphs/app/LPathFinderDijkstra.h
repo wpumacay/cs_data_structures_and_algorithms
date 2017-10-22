@@ -14,12 +14,12 @@ namespace app
 	{
 
 
-		class LPathFinder : public LPathFinderInterface
+		class LPathFinderDijkstra : public LPathFinderInterface
 		{
 
 			public :
 
-			LPathFinder( DS::LGraph<int, double>* pGraph, int pId )
+			LPathFinderDijkstra( DS::LGraph<int, double>* pGraph, int pId )
 			{
 				m_graphRef = pGraph;
 				id = pId;
@@ -34,7 +34,7 @@ namespace app
 
 			void launch() override
 			{
-				pthread_create( &m_threadHandle, NULL, LPathFinder::calculatePath, ( void* ) &m_wData );
+				pthread_create( &m_threadHandle, NULL, LPathFinderDijkstra::calculatePath, ( void* ) &m_wData );
 			}
 
 			static void* calculatePath( void* pWorkData )
@@ -47,13 +47,8 @@ namespace app
                 LNodePriorityQueue _toExplore;
                 _toExplore.push( _wData->start );
 
-                // Calculate the first heuristic value
-                double _dx = _wData->start->x - _wData->end->x;
-                double _dy = _wData->start->y - _wData->end->y;
-                double _h = sqrt( _dx * _dx + _dy * _dy );
                 _wData->start->g = 0;
-                _wData->start->h = _h;
-                _wData->start->f = _h;
+                _wData->start->f = 0;
 
                 _wData->start->parentInfo[_wData->id].first = NULL;
                 _wData->start->parentInfo[_wData->id].second = NULL;
@@ -76,6 +71,10 @@ namespace app
                     for ( int q = 0; q < _nextToExplore->edges.size(); q++ )
                     {
                         DS::LEdge<DS::LGraph<int,double>>* _edge = _nextToExplore->edges[q];
+                        if ( _edge == NULL )
+                        {
+                            cout << "wtf?????" << endl;
+                        }
                         DS::LNode<DS::LGraph<int,double>>* _successor = _edge->nodes[1];
 
                     #ifdef USE_BATCH_RENDER
@@ -100,14 +99,8 @@ namespace app
                         if ( _costSoFar.find( _successor->id ) == _costSoFar.end() ||
                              _g < _costSoFar[_successor->id] )
                         {
-                            float dx = _successor->x - _wData->end->x;
-                            float dy = _successor->y - _wData->end->y;
-                            float _h = sqrt( dx * dx + dy * dy );
-                            float _f = _g + _h;
-
                             _successor->g = _g;
-                            _successor->h = _h;
-                            _successor->f = _f;
+                            _successor->f = _g;
 
                             _toExplore.push( _successor );
                             _costSoFar[_successor->id] = _g;

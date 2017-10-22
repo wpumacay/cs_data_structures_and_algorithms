@@ -30,24 +30,6 @@ namespace app
     namespace graph
    {
 
-        struct LPathInfo
-        {
-            DS::LNode<DS::LGraph<int, double> >* start;
-            int start_glIndx;
-            DS::LNode<DS::LGraph<int, double> >* end;
-            int end_glIndx;
-            DS::LNode<DS::LGraph<int, double> >* pathNode;
-
-            LPathInfo()
-            {
-                this->start = NULL;
-                this->end = NULL;
-                this->start_glIndx = -1;
-                this->end_glIndx = -1;
-                this->pathNode = NULL;
-            }
-        };
-
         class LGraphWorld : public engine::gl::LWorld2D
         {
 

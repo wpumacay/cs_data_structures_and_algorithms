@@ -55,7 +55,7 @@ typedef long double lreal;
 typedef lreal mat3_t[3][3];
 
 struct point2d_s {
-	real			x, y;			/* point coordinates */
+	double			x, y;			/* point coordinates */
 	halfedge_t*		he;			/* point halfedge */
 	unsigned int		idx;			/* point index in input buffer */
 };

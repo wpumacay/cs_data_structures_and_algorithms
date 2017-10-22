@@ -107,6 +107,7 @@ namespace engine
 
             glfwSetKeyCallback( m_window, LApp::onKeyEvent );
             glfwSetMouseButtonCallback( m_window, LApp::onMouseEvent );
+            glfwSetCursorPosCallback( m_window, LApp::onCursorPosEvent );
             glfwSetScrollCallback( m_window, LApp::onScrollEvent );
 
             glfwGetFramebufferSize( m_window, &m_width, &m_height );
@@ -159,6 +160,8 @@ namespace engine
             }
             else
             {
+                LApp::instance->onKeyCallback( pKey, pScancode, pAction, pMode );
+
                 if ( pAction == GLFW_PRESS )
                 {
                     LApp::instance->world()->onKeyDown( pKey );
@@ -177,6 +180,8 @@ namespace engine
 
             glfwGetCursorPos( pWindow, &evx, &evy );
 
+            LApp::instance->onMouseButtonCallback( pButton, pAction, pMods );
+
             if ( pAction == GLFW_PRESS )
             {
                 LApp::instance->world()->_onMouseDown( (float)evx, (float)evy );
@@ -185,6 +190,11 @@ namespace engine
             {
                 LApp::instance->world()->_onMouseUp( (float)evx, (float)evy );
             }
+        }
+
+        void LApp::onCursorPosEvent( GLFWwindow* pWindow, double x, double y )
+        {
+            LApp::instance->onCursorCallback( x, y );
         }
 
         void LApp::onScrollEvent( GLFWwindow* pWindow, double xOff, double yOff )

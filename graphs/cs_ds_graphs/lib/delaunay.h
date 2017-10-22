@@ -27,10 +27,8 @@
 extern "C" {
 #endif
 
-typedef double real;
-
 typedef struct {
-	real	x, y;
+	double	x, y;
 } del_point2d_t;
 
 typedef struct {

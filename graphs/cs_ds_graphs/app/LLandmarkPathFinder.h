@@ -68,11 +68,22 @@ namespace app
                 end_glIndx = -1;
             }
 
-            void loadLandmarks()
+            void loadLandmarks( int graphSize = -1 )
             {
                 cout << "loading landmarks" << endl;
 
+            #ifdef ENABLE_UI
+                string _pathGraphLandmarks;
+                _pathGraphLandmarks += "res/landmarks/";
+                _pathGraphLandmarks += std::to_string( graphSize );
+                _pathGraphLandmarks += "points_landmarks.data";
+
+                cout << "_pathGraphLandmarks: " << _pathGraphLandmarks << endl;
+
+                ifstream _fileHandle ( _pathGraphLandmarks.c_str() );
+            #else
                 ifstream _fileHandle ( USE_SAVED_GRAPH_LANDMARKS );
+            #endif
                 if ( _fileHandle.is_open() )
                 {
                     string _line;
@@ -86,15 +97,15 @@ namespace app
                 }
 
                 // Just for fun, show the nonconnected nodes
-                cout << "nonconnected!!!" << endl;
-                for ( int q = 0; q < m_graphRef->nodes.size(); q++ )
-                {
-                    if ( m_graphRef->nodes[q]->edges.size() == 0 )
-                    {
-                        cout << m_graphRef->nodes[q]->id << endl;
-                    }
-                }
-                cout << "nonconnected!!!" << endl;
+                // cout << "nonconnected!!!" << endl;
+                // for ( int q = 0; q < m_graphRef->nodes.size(); q++ )
+                // {
+                //     if ( m_graphRef->nodes[q]->edges.size() == 0 )
+                //     {
+                //         cout << m_graphRef->nodes[q]->id << endl;
+                //     }
+                // }
+                // cout << "nonconnected!!!" << endl;
 
                 for ( int q = 0; q < NUM_LANDMARKS; q++ )
                 {
@@ -193,7 +204,7 @@ namespace app
                 cout << "done" << endl;
             }
 
-            void loadPreCalc()
+            void loadPreCalc( int graphSize = -1 )
             {
                 cout << "loading precalc" << endl;
 
@@ -202,8 +213,16 @@ namespace app
                     m_preCalc[q].clear();
                 }
 
-                ifstream _fileHandle ( USE_SAVED_GRAPH_PRECALC );
+            #ifdef ENABLE_UI
+                string _pathGraphPrecalc;
+                _pathGraphPrecalc += "res/preprocessing/";
+                _pathGraphPrecalc += std::to_string( graphSize );
+                _pathGraphPrecalc += "points_preprocessing.data";
 
+                ifstream _fileHandle ( _pathGraphPrecalc.c_str() );
+            #else
+                ifstream _fileHandle ( USE_SAVED_GRAPH_PRECALC );
+            #endif
                 if ( _fileHandle.is_open() )
                 {
                     string _line;
@@ -251,14 +270,12 @@ namespace app
                 //unordered_map<int,DS::LNode<DS::LGraph<int,double>>* > _explored;
                 unordered_map<int,float> _costSoFar;
 
-                LNodePriorityQueue _toExplore;
-                _toExplore.push( _wData->start );
+                LPairPriorityQueue _toExplore;
 
                 // Calculate the first heuristic value
                 float _dx = _wData->start->x - _wData->end->x;
                 float _dy = _wData->start->y - _wData->end->y;
                 float _h = sqrt( _dx * _dx + _dy * _dy );
-                _wData->start->g = 0;
                 for ( int l = 0; l < NUM_LANDMARKS; l++ )
                 {
                     if ( _wData->start->id == _wData->pLandmarkIDs[l] )
@@ -268,28 +285,26 @@ namespace app
                     float dt = _wData->pPreCalc[l][_wData->end->id];
                     float dv = _wData->pPreCalc[l][_wData->start->id];
 
-                    //cout << "abs( dt - dv ) : " << abs( dt - dv ) << endl;
                     _h = max( abs( dt - dv ), _h );
                 }
-                _wData->start->h = _h;
-                _wData->start->f = _h;
 
-                _wData->start->parentInfo[_wData->id].first = NULL;
-                _wData->start->parentInfo[_wData->id].second = NULL;
+                _wData->start->gg[_wData->id] = 0;
+                _wData->start->hh[_wData->id] = _h;
+                _wData->start->ff[_wData->id] = _h;
+                _costSoFar[_wData->start->id] = _wData->start->gg[_wData->id];
+
+                _toExplore.push( LPair( _wData->start, _wData->start->ff[_wData->id] ) );
 
                 bool found = false;
-                DS::LNode<DS::LGraph<int, double>>* _pathNode = NULL;
-
                 int _opCount = 0;
+
+                DS::LNode<DS::LGraph<int, double>>* _pathNode = NULL;
 
                 while ( !_toExplore.empty() )
                 {
 
-                    DS::LNode<DS::LGraph<int,double>>* _nextToExplore = _toExplore.top();
+                    DS::LNode<DS::LGraph<int,double>>* _nextToExplore = ( _toExplore.top() ).node;
                     _toExplore.pop();
-
-                    // Expand this node
-                    //_explored[_nextToExplore->id] = _nextToExplore;
 
                     for ( int q = 0; q < _nextToExplore->edges.size(); q++ )
                     {
@@ -313,14 +328,14 @@ namespace app
                             break;
                         }
 
-                        float _g = _nextToExplore->g + _edge->data;
+                        float _g = _nextToExplore->gg[_wData->id] + _edge->data;
+
                         if ( _costSoFar.find( _successor->id ) == _costSoFar.end() ||
                              _g < _costSoFar[_successor->id] )
                         {
                             float dx = _successor->x - _wData->end->x;
                             float dy = _successor->y - _wData->end->y;
                             float _h = sqrt( dx * dx + dy * dy );
-
                             for ( int l = 0; l < NUM_LANDMARKS; l++ )
                             {
                                 if ( _successor->id == _wData->pLandmarkIDs[l] )
@@ -332,14 +347,13 @@ namespace app
 
                                 _h = max( abs( dt - dv ), _h );
                             }
-
                             float _f = _g + _h;
 
-                            _successor->g = _g;
-                            _successor->h = _h;
-                            _successor->f = _f;
-                            
-                            _toExplore.push( _successor );
+                            _successor->gg[_wData->id] = _g;
+                            _successor->hh[_wData->id] = _h;
+                            _successor->ff[_wData->id] = _f;
+
+                            _toExplore.push( LPair( _successor, _f ) );
                             _costSoFar[_successor->id] = _g;
 
                             _successor->parentInfo[_wData->id].first = _nextToExplore;
@@ -386,3 +400,8 @@ namespace app
 
 
 }
+
+
+
+
+

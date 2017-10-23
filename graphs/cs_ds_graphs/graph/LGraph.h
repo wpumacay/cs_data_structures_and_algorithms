@@ -36,6 +36,34 @@ namespace DS
 		int nodes_glIndx;
 		int edges_glIndx;
 
+		~LGraph()
+		{
+			for ( int q = 0; q < nodes.size(); q++ )
+			{
+				for ( int e = 0; e < nodes[q]->edges.size(); e++ )
+				{
+					if ( nodes[q]->edges[e] != NULL )
+					{
+						delete nodes[q]->edges[e];
+						nodes[q]->edges[e] = NULL;
+					}
+				}
+
+				nodes[q]->edges.clear();
+			}
+
+			for ( int q = 0; q < nodes.size(); q++ )
+			{
+				if ( nodes[q] != NULL )
+				{
+					delete nodes[q];
+					nodes[q] = NULL;
+				}
+			}
+
+			nodes.clear();
+		}
+
 		void print();
 	};
 
@@ -153,7 +181,6 @@ namespace DS
 			nodes.erase( nodes.begin() + _indx );
 		}
 	}
-
 
 	template<class N, class E>
 	void LGraph<N,E>::print()

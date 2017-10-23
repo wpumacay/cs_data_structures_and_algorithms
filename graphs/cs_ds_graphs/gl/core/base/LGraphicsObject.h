@@ -74,6 +74,11 @@ namespace engine
 				m_color.w = DEFAULT_PRIMITIVE_COLOR_A;
 			}
 
+			~LGraphicsObject()
+			{
+				delete[] m_vertices;
+			}
+
 			virtual void init() = 0;
 
 	        void setColor( GLfloat r, GLfloat g, GLfloat b, GLfloat a )

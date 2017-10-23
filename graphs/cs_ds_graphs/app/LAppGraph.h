@@ -7,6 +7,7 @@
 #ifdef ENABLE_UI
 	#include <nanogui/nanogui.h>
 	#include "LGraphWorldGeneral.h"
+	#include "LCommonPathFinding.h"
 #endif
 
 namespace app
@@ -15,6 +16,16 @@ namespace app
 	namespace graph
 	{
 
+		enum _graphSize
+		{
+			SIZE_100,
+			SIZE_1000,
+			SIZE_2000,
+			SIZE_5000,
+			SIZE_10000,
+			SIZE_1000000
+		};
+
 		class LAppGraph : public engine::gl::LApp
 		{
 
@@ -22,6 +33,14 @@ namespace app
 		#ifdef ENABLE_UI
 			nanogui::Screen* m_uiScreen;
 			nanogui::FormHelper* m_uiForm;
+
+			// ui options
+			finderType::_finderType m_pfType;
+			bool m_parallelRequestsEnabled;
+			bool m_optionsEnabled;
+
+			_graphSize m_graphSize;
+			int m_graphSizeOptions[6];
 		#endif
 			public :
 
@@ -42,6 +61,10 @@ namespace app
             void onMouseButtonCallback( int pButton, int pAction, int pMods ) override;
 
             void onCursorCallback( double x, double y ) override;
+
+            void onPropsModified();
+
+            void restartWorld();
         #endif
 		};
 

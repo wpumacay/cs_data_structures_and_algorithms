@@ -55,6 +55,24 @@ namespace engine
 				m_childScenes.push_back( pScene );
 			}
 
+			void removeChildScene( LScene* pScene )
+			{
+				int _indx = -1;
+				for ( int q = 0; q < m_childScenes.size(); q++ )
+				{
+					if ( pScene == m_childScenes[q] )
+					{
+						_indx = q;
+						break;
+					}
+				}
+
+				if ( _indx != -1 )
+				{
+					m_childScenes.erase( m_childScenes.begin() + _indx );
+				}
+			}
+
 			void render( const LRenderInfo& rInfo )
 			{
 				for ( int q = 0; q < m_childScenes.size(); q++ )

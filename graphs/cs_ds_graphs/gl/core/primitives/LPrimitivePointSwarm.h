@@ -34,6 +34,12 @@ namespace engine
 				this->type = primitive::PRIMITIVE_POINT_SWARM;
 			}
 
+			~LPrimitivePointSwarm()
+			{
+				delete[] m_pxBuff;
+				delete[] m_pyBuff;
+			}
+
 			LPrimitivePointSwarm( float *px, float *py, int nPoints ) : LPrimitive()
 			{
 				this->type = primitive::PRIMITIVE_POINT_SWARM;

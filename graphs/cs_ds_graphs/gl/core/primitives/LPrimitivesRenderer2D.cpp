@@ -29,6 +29,21 @@ namespace engine
 			}
 		}
 
+		void LPrimitivesRenderer2D::clean()
+		{
+			cout << "cleaning" << endl;
+			for ( int q = 0; q < 8; q++ )
+			{
+				for ( int s = 0; s < m_primitivesPools[q].size(); s++ )
+				{
+					delete m_primitivesPools[q][s];
+					m_primitivesPools[q][s] = NULL;
+				}
+
+				m_primitivesPools[q].clear();
+			}
+		}
+
 		void LPrimitivesRenderer2D::create()
 		{
 			if ( engine::gl::LPrimitivesRenderer2D::instance != NULL )

@@ -132,8 +132,8 @@ namespace engine
                 // cout << glm::to_string( mat_pv ) << endl;
                 // cout << glm::to_string( mat_inv_pv ) << endl;
 
-                cout << "wx: " << wx << endl;
-                cout << "wy: " << wy << endl;
+                //cout << "wx: " << wx << endl;
+                //cout << "wy: " << wy << endl;
 
                 // from map
                 // cout << "mx: " << ( wx + 0.5 * m_width ) << endl;

@@ -24,6 +24,12 @@ namespace app
         {
             DS::LNode<DS::LGraph<int, double> >* node;
             float f;
+
+            LPair( DS::LNode<DS::LGraph<int, double> >* pNode, float f )
+            {
+                this->node = pNode;
+                this->f = f;
+            }
         };
 
         struct LPathInfo
@@ -61,7 +67,7 @@ namespace app
             inline bool operator() ( const LPair& lhs,
                                      const LPair& rhs )
             {
-                return lhs->f > rhs->f;
+                return lhs.f > rhs.f;
             }
         };
 
@@ -101,9 +107,9 @@ namespace app
         {
             enum _finderType
             {
-                SEARCH_DIJKSTRA,
                 SEARCH_A_STAR,
-                SEARCH_A_STAR_LANDMARKS
+                SEARCH_A_STAR_LANDMARKS,
+                SEARCH_DIJKSTRA
             };
         }
 

@@ -35,14 +35,32 @@ namespace app
 		#ifdef ENABLE_UI
 			cout << "creating UI" << endl;
 
+			m_pfType = finderType::SEARCH_A_STAR;
+			m_parallelRequestsEnabled = false;
+			m_optionsEnabled = true;
+
 			m_uiScreen = new Screen();
 			m_uiScreen->initialize( m_window, true );
 
 			m_uiForm = new FormHelper( m_uiScreen );
 			nanogui::ref<Window> nanoguiWindow = m_uiForm->addWindow( Eigen::Vector2i( 10, 10 ),
-															 	      "Form helper example" );
-		    m_uiForm->addGroup("Basic types");
-		    m_uiForm->addButton("A button", []() { std::cout << "Button pressed." << std::endl; })->setTooltip("Testing a much longer tooltip, that will wrap around to new lines multiple times.");;
+															 	      "GraphSearch app options" );
+			m_uiForm->addGroup("Graph options");
+			m_uiForm->addVariable( "Graph Size", m_graphSize, m_optionsEnabled )->setItems( { "100", "1000", "2000", "5000", "10000", "1000000" } );
+		    m_uiForm->addButton( "Reload graph",
+		    					 []() { 
+		    					 		std::cout << "Button pressed. graph size options" << std::endl;
+		    					 		reinterpret_cast<LAppGraph*>( LAppGraph::instance )->restartWorld();
+		    					 	  } );			
+
+		    m_uiForm->addGroup("Search options");
+		    m_uiForm->addVariable( "Search type", m_pfType, m_optionsEnabled )->setItems( { "A*", "ALT" } );
+		    m_uiForm->addVariable( "Parallel requests enabled", m_parallelRequestsEnabled );
+		    m_uiForm->addButton( "Reload props",
+		    					 []() { 
+		    					 		std::cout << "Button pressed. graph search options" << std::endl;
+		    					 		reinterpret_cast<LAppGraph*>( LAppGraph::instance )->onPropsModified();
+		    					 	  } );
 
 		    m_uiScreen->setVisible(true);
 		    m_uiScreen->performLayout();
@@ -52,11 +70,34 @@ namespace app
 		#endif
 		}
 
+		#ifdef ENABLE_UI
+
+		void LAppGraph::onPropsModified()
+		{
+			cout << "props modified" << endl;
+			cout << "parallel? " << m_parallelRequestsEnabled << endl;
+		    cout << "pfType? " << m_pfType << endl;
+
+		    reinterpret_cast< LGraphWorldGeneral* >( m_world )->setParallelMode( m_parallelRequestsEnabled );
+		    reinterpret_cast< LGraphWorldGeneral* >( m_world )->changePathFinder( m_pfType );
+		}
+
+		#endif
+
 		void LAppGraph::createWorld()
 		{
 			cout << "creating graph-world" << endl;
 		#ifdef ENABLE_UI
-			m_world = new LGraphWorldGeneral( 4000.0f, 2000.0f, 
+			m_graphSize = SIZE_100;
+			m_graphSizeOptions[0] = 100;
+			m_graphSizeOptions[1] = 1000;
+			m_graphSizeOptions[2] = 2000;
+			m_graphSizeOptions[3] = 5000;
+			m_graphSizeOptions[4] = 10000;
+			m_graphSizeOptions[5] = 1000000;
+
+			m_world = new LGraphWorldGeneral( m_graphSizeOptions[m_graphSize], 
+											  4000.0f, 2000.0f, 
                                        		  APP_WIDTH, APP_HEIGHT, 
                                        		  1.0f );
 		#else
@@ -66,6 +107,29 @@ namespace app
 		#endif
 			m_stage->addChildScene( m_world->scene() );
 		}
+
+		#ifdef ENABLE_UI
+		void LAppGraph::restartWorld()
+		{
+			if ( m_world != NULL )
+			{
+				cout << "removing previous world" << endl;
+				m_stage->removeChildScene( m_world->scene() );
+				reinterpret_cast< LGraphWorldGeneral* >( m_world )->clean();
+				delete m_world;
+				m_world = NULL;
+			}
+
+			cout << "graphSize: " << m_graphSizeOptions[m_graphSize] << endl;
+
+			m_world = new LGraphWorldGeneral( m_graphSizeOptions[m_graphSize], 
+											  4000.0f, 2000.0f, 
+                                       		  APP_WIDTH, APP_HEIGHT, 
+                                       		  1.0f );
+
+			m_stage->addChildScene( m_world->scene() );
+		}
+		#endif
 
 		void LAppGraph::loop()
 		{

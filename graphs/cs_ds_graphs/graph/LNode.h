@@ -28,16 +28,15 @@ namespace DS
        	int glIndx;
 
         double f,g,h; // For A* search
+        float ff[MAX_PARALLEL_REQUESTS];
+        float gg[MAX_PARALLEL_REQUESTS];
+        float hh[MAX_PARALLEL_REQUESTS];
 
         LNode* parent;// For A* search path reconstruction
 
        	float d;// For Dijkstra precalculation
 
-        #ifdef USE_PARALLEL_REQUESTS
-       		pair<LNode*,Edge*> parentInfo[MAX_PARALLEL_REQUESTS];
-       	#else
-       		pair<LNode*,Edge*> parentInfo[1];
-       	#endif
+       	pair<LNode*,Edge*> parentInfo[MAX_PARALLEL_REQUESTS];
 
         bool inOpen;
 
@@ -54,16 +53,16 @@ namespace DS
             this->h = 0;
             this->d = INF;
             this->parent = NULL;
-        #ifdef USE_PARALLEL_REQUESTS
+
        		for ( int q = 0; q < MAX_PARALLEL_REQUESTS; q++ )
        		{
        			this->parentInfo[q].first = NULL;
        			this->parentInfo[q].second = NULL;
+
+                this->ff[q] = 0.0f;
+                this->gg[q] = 0.0f;
+                this->hh[q] = 0.0f;
        		}
-        #else
-           	this->parentInfo[0].first = NULL;
-           	this->parentInfo[0].second = NULL;
-        #endif
 		}
 	};
 	

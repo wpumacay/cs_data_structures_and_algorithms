@@ -44,34 +44,29 @@ namespace app
                 //unordered_map<int,DS::LNode<DS::LGraph<int,double>>* > _explored;
                 unordered_map<int,float> _costSoFar;
 
-                LNodePriorityQueue _toExplore;
-                _toExplore.push( _wData->start );
+                LPairPriorityQueue _toExplore;
 
                 // Calculate the first heuristic value
-                double _dx = _wData->start->x - _wData->end->x;
-                double _dy = _wData->start->y - _wData->end->y;
-                double _h = sqrt( _dx * _dx + _dy * _dy );
-                _wData->start->g = 0;
-                _wData->start->h = _h;
-                _wData->start->f = _h;
+                float _dx = _wData->start->x - _wData->end->x;
+                float _dy = _wData->start->y - _wData->end->y;
+                float _h = sqrt( _dx * _dx + _dy * _dy );
+                _wData->start->gg[_wData->id] = 0;
+                _wData->start->hh[_wData->id] = _h;
+                _wData->start->ff[_wData->id] = _h;
+                _costSoFar[_wData->start->id] = _wData->start->gg[_wData->id];
 
-                _wData->start->parentInfo[_wData->id].first = NULL;
-                _wData->start->parentInfo[_wData->id].second = NULL;
+                _toExplore.push( LPair( _wData->start, _wData->start->ff[_wData->id] ) );
 
                 bool found = false;
-                DS::LNode<DS::LGraph<int, double>>* _pathNode = NULL;
-
                 int _opCount = 0;
-                _costSoFar[_wData->start->id] = _wData->start->g;
+
+                DS::LNode<DS::LGraph<int, double>>* _pathNode = NULL;
 
                 while ( !_toExplore.empty() )
                 {
 
-                    DS::LNode<DS::LGraph<int,double>>* _nextToExplore = _toExplore.top();
+                    DS::LNode<DS::LGraph<int,double>>* _nextToExplore = ( _toExplore.top() ).node;
                     _toExplore.pop();
-
-                    // Expand this node
-                    //_explored[_nextToExplore->id] = _nextToExplore;
 
                     for ( int q = 0; q < _nextToExplore->edges.size(); q++ )
                     {
@@ -95,7 +90,7 @@ namespace app
                             break;
                         }
 
-                        float _g = _nextToExplore->g + _edge->data;
+                        float _g = _nextToExplore->gg[_wData->id] + _edge->data;
 
                         if ( _costSoFar.find( _successor->id ) == _costSoFar.end() ||
                              _g < _costSoFar[_successor->id] )
@@ -105,11 +100,11 @@ namespace app
                             float _h = sqrt( dx * dx + dy * dy );
                             float _f = _g + _h;
 
-                            _successor->g = _g;
-                            _successor->h = _h;
-                            _successor->f = _f;
+                            _successor->gg[_wData->id] = _g;
+                            _successor->hh[_wData->id] = _h;
+                            _successor->ff[_wData->id] = _f;
 
-                            _toExplore.push( _successor );
+                            _toExplore.push( LPair( _successor, _f ) );
                             _costSoFar[_successor->id] = _g;
 
                             _successor->parentInfo[_wData->id].first = _nextToExplore;

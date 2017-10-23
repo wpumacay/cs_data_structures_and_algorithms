@@ -81,16 +81,17 @@ namespace app
 
             public :
 
-            LGraphWorldGeneral( float wWidth, float wHeight,
-                         float appWidth, float appHeight,
-                         float pix2world ) : engine::gl::LWorld2D( wWidth, wHeight,
+            LGraphWorldGeneral( int graphSize,
+                                float wWidth, float wHeight,
+                                float appWidth, float appHeight,
+                                float pix2world ) : engine::gl::LWorld2D( wWidth, wHeight,
                                                                    appWidth, appHeight,
                                                                    pix2world )
             {
 
-                loadGraph();
+                loadGraph( graphSize );
 
-                m_pfType = finderType::SEARCH_DIJKSTRA;
+                m_pfType = finderType::SEARCH_A_STAR;
 
                 // initialize the pathfinders
                 for ( int q = 0; q < MAX_PARALLEL_REQUESTS; q++ )
@@ -98,11 +99,11 @@ namespace app
                     m_pf_dijkstra[q] = new LPathFinderDijkstra( &m_graph, q );
                     m_pf_astar[q] = new LPathFinder( &m_graph, q );
                     m_pf_astar_landmarks[q] = new LLandmarkPathFinder( &m_graph, q );
-                    m_pf_astar_landmarks[q]->loadLandmarks();
-                    m_pf_astar_landmarks[q]->loadPreCalc();
+                    m_pf_astar_landmarks[q]->loadLandmarks( graphSize );
+                    m_pf_astar_landmarks[q]->loadPreCalc( graphSize );
                 }
 
-                m_useParallelRequests = true;
+                m_useParallelRequests = false;
                 for ( int q = 0; q < MAX_PARALLEL_REQUESTS; q++ )
                 {
                     m_currentPathFinders[q] = m_pf_astar[q];
@@ -120,6 +121,30 @@ namespace app
                     m_pf_dijkstra[q]->end_glIndx          = _end_glIndx;
                     m_pf_astar[q]->end_glIndx             = _end_glIndx;
                     m_pf_astar_landmarks[q]->end_glIndx   = _end_glIndx;
+                }
+            }
+
+            void clean()
+            {
+                gl::LPrimitivesRenderer2D::instance->clean();
+
+                for ( int q = 0; q < MAX_PARALLEL_REQUESTS; q++ )
+                {
+                    if ( m_pf_dijkstra[q] != NULL )
+                    {
+                        delete m_pf_dijkstra[q];
+                        m_pf_dijkstra[q] = NULL;
+                    }
+                    if ( m_pf_astar[q] != NULL )
+                    {
+                        delete m_pf_astar[q];
+                        m_pf_astar[q] = NULL;
+                    }
+                    if ( m_pf_astar_landmarks[q] != NULL )
+                    {
+                        delete m_pf_astar_landmarks[q];
+                        m_pf_astar_landmarks[q] = NULL;
+                    }
                 }
             }
 
@@ -167,11 +192,16 @@ namespace app
                 }
             }
 
-            void loadGraph()
+            void loadGraph( int graphSize )
             {
                 cout << "loading graph" << endl;
 
-                ifstream _fileHandle ( USE_SAVED_GRAPH_PATH );
+                string _pathGraph;
+                _pathGraph += "res/";
+                _pathGraph += std::to_string( graphSize );
+                _pathGraph += "points.data";
+
+                ifstream _fileHandle ( _pathGraph.c_str() );
                 if ( _fileHandle.is_open() )
                 {
                     string _line;

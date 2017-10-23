@@ -39,42 +39,37 @@ namespace app
 
 			static void* calculatePath( void* pWorkData )
 			{
-				LPathFinderWorkData* _wData = ( LPathFinderWorkData* ) pWorkData;
+                LPathFinderWorkData* _wData = ( LPathFinderWorkData* ) pWorkData;
 
-                //unordered_map<int,DS::LNode<DS::LGraph<int,double>>* > _explored;
-                unordered_map<int,float> _costSoFar;
+                LPairPriorityQueue _toExplore;
 
-                LNodePriorityQueue _toExplore;
-                _toExplore.push( _wData->start );
+                for ( int q = 0; q < _wData->graphRef->nodes.size(); q++ )
+                {
+                    _wData->graphRef->nodes[q]->gg[_wData->id] = INF;
+                }
 
-                _wData->start->g = 0;
-                _wData->start->f = 0;
+                // Calculate the first heuristic value
+                _wData->start->gg[_wData->id] = 0;
 
-                _wData->start->parentInfo[_wData->id].first = NULL;
-                _wData->start->parentInfo[_wData->id].second = NULL;
+                for ( int q = 0; q < _wData->graphRef->nodes.size(); q++ )
+                {
+                    _toExplore.push( LPair( _wData->graphRef->nodes[q], _wData->graphRef->nodes[q]->gg[_wData->id] ) );
+                }
 
                 bool found = false;
-                DS::LNode<DS::LGraph<int, double>>* _pathNode = NULL;
-
                 int _opCount = 0;
-                _costSoFar[_wData->start->id] = _wData->start->g;
+
+                DS::LNode<DS::LGraph<int, double>>* _pathNode = NULL;
 
                 while ( !_toExplore.empty() )
                 {
 
-                    DS::LNode<DS::LGraph<int,double>>* _nextToExplore = _toExplore.top();
+                    DS::LNode<DS::LGraph<int,double>>* _nextToExplore = ( _toExplore.top() ).node;
                     _toExplore.pop();
-
-                    // Expand this node
-                    //_explored[_nextToExplore->id] = _nextToExplore;
 
                     for ( int q = 0; q < _nextToExplore->edges.size(); q++ )
                     {
                         DS::LEdge<DS::LGraph<int,double>>* _edge = _nextToExplore->edges[q];
-                        if ( _edge == NULL )
-                        {
-                            cout << "wtf?????" << endl;
-                        }
                         DS::LNode<DS::LGraph<int,double>>* _successor = _edge->nodes[1];
 
                     #ifdef USE_BATCH_RENDER
@@ -83,30 +78,22 @@ namespace app
                                                                                    0.0f, 0.0f, 1.0f );
                     #else
                         gl::LPrimitivesRenderer2D::instance->updateLineColor( _edge->glIndx, 0.0f, 0.0f, 1.0f );
-					#endif
+                    #endif
 
-                        if ( _successor == _wData->end )
+                        float _g = _nextToExplore->gg[_wData->id] + _edge->data;
+
+                        if ( _successor->gg[_wData->id] > _g )
                         {
-                            _successor->parentInfo[_wData->id].first = _nextToExplore;
-                            _successor->parentInfo[_wData->id].second = _edge;
-                            found = true;
-                            _pathNode = _successor;
-                            break;
-                        }
-
-                        float _g = _nextToExplore->g + _edge->data;
-
-                        if ( _costSoFar.find( _successor->id ) == _costSoFar.end() ||
-                             _g < _costSoFar[_successor->id] )
-                        {
-                            _successor->g = _g;
-                            _successor->f = _g;
-
-                            _toExplore.push( _successor );
-                            _costSoFar[_successor->id] = _g;
+                            _successor->gg[_wData->id] = _g;
 
                             _successor->parentInfo[_wData->id].first = _nextToExplore;
                             _successor->parentInfo[_wData->id].second = _edge;
+
+                            if ( _successor == _wData->end )
+                            {
+                               found = true;
+                               _pathNode = _successor;
+                            }
                         }
 
                         _opCount++;

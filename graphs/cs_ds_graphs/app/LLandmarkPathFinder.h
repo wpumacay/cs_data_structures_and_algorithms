@@ -129,14 +129,11 @@ namespace app
 
             void preCalc_( int pLandmarkIndx, int pLandmarkNodeId )
             {
-                cout << "precalulating for landmark " << pLandmarkIndx << endl;
+                cout << "precalulating for landmark " << pLandmarkIndx << " - " << pLandmarkNodeId << endl;
                 float _total = m_graphRef->nodes.size();
                 // Start Dijkstra
                 DS::LNode< DS::LGraph<int, double> >* _start = m_graphRef->nodes[pLandmarkNodeId];
                 _start->d = 0;
-
-                LNodePriorityQueueDijkstra _pq;
-                //LNodeVectPriorityQueue _pq;
 
                 for ( int q = 0; q < m_graphRef->nodes.size(); q++ )
                 {
@@ -144,15 +141,25 @@ namespace app
                     {
                         m_graphRef->nodes[q]->d = INF;
                     }
-                    _pq.push( m_graphRef->nodes[q] );
+                    m_graphRef->nodes[q]->inOpen = false;
+                }
+
+                //LNodePriorityQueueDijkstra _pq;
+                LPairPriorityQueue _pq;
+                //LNodeVectPriorityQueue _pq;
+                //LSpecialPriorityQueueDijsktra _pq( m_graphRef->nodes );
+                
+                for ( int q = 0; q < m_graphRef->nodes.size(); q++ )
+                {
+                    _pq.push( LPair( m_graphRef->nodes[q], m_graphRef->nodes[q]->d ) );
                 }
 
                 int _count = 0;
                 while ( !_pq.empty() )
                 {
-                    DS::LNode< DS::LGraph<int, double> >* _u = _pq.top();
+                    DS::LNode< DS::LGraph<int, double> >* _u = ( _pq.top() ).node;
                     _pq.pop();
-                    // cout << "dddd: " << _u->d << endl;
+                    
 
                     for ( int q = 0; q < _u->edges.size(); q++ )
                     {
@@ -162,11 +169,11 @@ namespace app
                         if ( _v->d > _u->d + _u->edges[q]->data )
                         {
                             _v->d = _u->d + _u->edges[q]->data;
-                            _pq.push( _v );
+                            _pq.push( LPair( _v, _v->d ) );
                         }
                     }
 
-                    
+
                     _count++;
                     //cout << "percent: " << _count / _total << endl;
                 }

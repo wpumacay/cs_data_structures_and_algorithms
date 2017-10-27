@@ -102,8 +102,10 @@ namespace app
                     cout << "precalculating ..." << endl;
 
                     reinterpret_cast< LLandmarkPathFinder* >( m_pathFinders[0] )->loadLandmarks();
+                    #ifndef CHECK_LANDMARKS
                     reinterpret_cast< LLandmarkPathFinder* >( m_pathFinders[0] )->preCalc();
                     reinterpret_cast< LLandmarkPathFinder* >( m_pathFinders[0] )->savePreCalc();
+                    #endif
 
                     cout << "done" << endl;
                 #else

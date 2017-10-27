@@ -40,7 +40,7 @@ namespace app
 			bool m_optionsEnabled;
 
 			_graphSize m_graphSize;
-			int m_graphSizeOptions[6];
+			int m_graphSizeOptions[7];
 		#endif
 			public :
 

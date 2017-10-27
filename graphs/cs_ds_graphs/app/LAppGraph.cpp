@@ -46,7 +46,7 @@ namespace app
 			nanogui::ref<Window> nanoguiWindow = m_uiForm->addWindow( Eigen::Vector2i( 10, 10 ),
 															 	      "GraphSearch app options" );
 			m_uiForm->addGroup("Graph options");
-			m_uiForm->addVariable( "Graph Size", m_graphSize, m_optionsEnabled )->setItems( { "100", "1000", "2000", "5000", "10000", "1000000" } );
+			m_uiForm->addVariable( "Graph Size", m_graphSize, m_optionsEnabled )->setItems( { "100", "1000", "2000", "5000", "10000", "500000", "1000000" } );
 		    m_uiForm->addButton( "Reload graph",
 		    					 []() { 
 		    					 		std::cout << "Button pressed. graph size options" << std::endl;
@@ -94,7 +94,8 @@ namespace app
 			m_graphSizeOptions[2] = 2000;
 			m_graphSizeOptions[3] = 5000;
 			m_graphSizeOptions[4] = 10000;
-			m_graphSizeOptions[5] = 1000000;
+            m_graphSizeOptions[5] = 500000;
+			m_graphSizeOptions[6] = 1000000;
 
 			m_world = new LGraphWorldGeneral( m_graphSizeOptions[m_graphSize], 
 											  4000.0f, 2000.0f, 

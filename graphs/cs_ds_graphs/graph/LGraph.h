@@ -86,11 +86,21 @@ namespace DS
         for ( int q = 0; q < from->edges.size(); q++ )
         {
             LEdge<LGraph<N,E> >* _edge = from->edges[q];
-            if ( _edge->nodes[1] == to )
+            if ( _edge->nodes[1]->id == to->id )
             {
                 // Already there
                 return _res;
             }
+        }
+
+        for ( int q = 0; q < to->edges.size(); q++ )
+        {
+        	LEdge<LGraph<N,E> >* _edge = to->edges[q];
+        	if ( _edge->nodes[1]->id == from->id )
+        	{
+        		// Already there
+        		return _res;
+        	}
         }
 
 		LEdge<LGraph<N,E> >* _edge_from = new LEdge<LGraph<N,E> >( edge_data );
